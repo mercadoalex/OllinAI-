@@ -32,6 +32,8 @@ OllinAI provides:
 
 ## Architecture
 
+![OllinAI Architecture](./ollinai_architecture.png)
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         VERCEL EDGE                                       │
@@ -76,27 +78,7 @@ OllinAI provides:
 
 ## Monetization
 
-### Subscription Tiers
-
-| Feature | Starter ($299/mo) | Pro ($799/mo) | Enterprise ($2,499/mo) |
-|---------|:-:|:-:|:-:|
-| DORA Metrics | ✅ | ✅ | ✅ |
-| Services | Max 5 | Unlimited | Unlimited |
-| Retention | 30 days | 90 days | Unlimited |
-| Risk Scoring | — | ✅ | ✅ |
-| Incident Correlation | — | ✅ | ✅ |
-| Recommendations | — | ✅ | ✅ |
-| AIOps Predictions | — | ✅ | ✅ |
-| SSO | — | — | ✅ |
-| Audit Logs | — | — | ✅ |
-| REST API Export | — | — | ✅ |
-| Data Residency | — | — | ✅ |
-| Build Attestation | — | — | ✅ |
-| Custom Integrations | — | — | ✅ |
-
-### Target Market
-
-Mid-market engineering organizations (50–500 engineers) who need data-driven insights into their deployment practices. Key buyers: Engineering Managers, Platform Team Leads, VPs of Engineering.
+Three-tier subscription model (Starter / Pro / Enterprise) targeting mid-market engineering organizations (50–500 engineers). See [pricing_strategy.md](./pricing_strategy.md) for details.
 
 ---
 
@@ -266,7 +248,7 @@ curl -X POST https://app.ollinai.com/api/webhooks/deployments \
 
 ## License
 
-Proprietary — All rights reserved.
+MIT License — see [LICENSE](./LICENSE) for details.
 
 ## Team
 
