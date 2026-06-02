@@ -1,0 +1,130 @@
+name: 'OllinAI Deploy Event'
+description: 'Send a deployment event to OllinAI for risk scoring, DORA metrics, and correlation analysis'
+author: 'OllinAI'
+
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+inputs:
+  api-url:
+    description: 'OllinAI API base URL'
+    required: true
+    default: 'https://app.ollinai.com'
+  secret-key:
+    description: 'Integration secret key for HMAC-SHA256 signing'
+    required: true
+  services:
+    description: 'Comma-separated list of affected service names (1-20 services)'
+    required: true
+  environment:
+    description: 'Target deployment environment (e.g., production, staging)'
+    required: true
+    default: 'production'
+  commit-shas:
+    description: 'Comma-separated commit SHAs (1-50). Defaults to current commit.'
+    required: false
+  author:
+    description: 'Deployment author. Defaults to GitHub actor.'
+    required: false
+  lines-added:
+    description: 'Number of lines added in this deployment'
+    required: false
+  lines-removed:
+    description: 'Number of lines removed in this deployment'
+    required: false
+  files-changed:
+    description: 'Number of files changed in this deployment'
+    required: false
+
+outputs:
+  event-id:
+    description: 'The deployment event ID returned by OllinAI'
+  risk-score:
+    description: 'Risk score classification (low, medium, high, critical)'
+  status:
+    description: 'Response status (created, duplicate)'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send deployment event to OllinAI
+      shell: bash
+      env:
+        OLLINAI_API_URL: ${{ inputs.api-url }}
+        OLLINAI_SECRET_KEY: ${{ inputs.secret-key }}
+        OLLINAI_SERVICES: ${{ inputs.services }}
+        OLLINAI_ENVIRONMENT: ${{ inputs.environment }}
+        OLLINAI_COMMIT_SHAS: ${{ inputs.commit-shas }}
+        OLLINAI_AUTHOR: ${{ inputs.author }}
+        OLLINAI_LINES_ADDED: ${{ inputs.lines-added }}
+        OLLINAI_LINES_REMOVED: ${{ inputs.lines-removed }}
+        OLLINAI_FILES_CHANGED: ${{ inputs.files-changed }}
+      run: |
+        # Determine commit SHAs
+        COMMITS="${OLLINAI_COMMIT_SHAS:-${{ github.sha }}}"
+        IFS=',' read -ra COMMIT_ARRAY <<< "$COMMITS"
+        COMMIT_JSON=$(printf '%s\n' "${COMMIT_ARRAY[@]}" | jq -R . | jq -s .)
+
+        # Determine services
+        IFS=',' read -ra SVC_ARRAY <<< "$OLLINAI_SERVICES"
+        SVC_JSON=$(printf '%s\n' "${SVC_ARRAY[@]}" | jq -R . | jq -s .)
+
+        # Determine author
+        AUTHOR="${OLLINAI_AUTHOR:-${{ github.actor }}}"
+
+        # Build payload
+        PAYLOAD=$(jq -n \
+          --argjson commitShas "$COMMIT_JSON" \
+          --argjson services "$SVC_JSON" \
+          --arg author "$AUTHOR" \
+          --arg environment "$OLLINAI_ENVIRONMENT" \
+          --arg deploymentTimestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          '{
+            commitShas: $commitShas,
+            services: $services,
+            author: $author,
+            environment: $environment,
+            deploymentTimestamp: $deploymentTimestamp
+          }')
+
+        # Add optional change size fields
+        if [ -n "$OLLINAI_LINES_ADDED" ] || [ -n "$OLLINAI_LINES_REMOVED" ] || [ -n "$OLLINAI_FILES_CHANGED" ]; then
+          CHANGE_SIZE=$(jq -n \
+            --arg la "${OLLINAI_LINES_ADDED:-0}" \
+            --arg lr "${OLLINAI_LINES_REMOVED:-0}" \
+            --arg fc "${OLLINAI_FILES_CHANGED:-0}" \
+            '{linesAdded: ($la | tonumber), linesRemoved: ($lr | tonumber), filesChanged: ($fc | tonumber)}')
+          PAYLOAD=$(echo "$PAYLOAD" | jq --argjson cs "$CHANGE_SIZE" '. + {changeSize: $cs}')
+        fi
+
+        # Validate payload size (max 1 MB)
+        PAYLOAD_SIZE=$(echo "$PAYLOAD" | wc -c)
+        if [ "$PAYLOAD_SIZE" -gt 1048576 ]; then
+          echo "::error::Payload exceeds maximum size of 1 MB"
+          exit 1
+        fi
+
+        # Compute HMAC-SHA256 signature
+        SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$OLLINAI_SECRET_KEY" -binary | xxd -p -c 256)
+
+        # Send request
+        RESPONSE=$(curl -s -w "\n%{http_code}" \
+          -X POST "${OLLINAI_API_URL}/api/webhooks/deployments" \
+          -H "Content-Type: application/json" \
+          -H "X-OllinAI-Signature: sha256=${SIGNATURE}" \
+          -d "$PAYLOAD")
+
+        HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+        BODY=$(echo "$RESPONSE" | sed '$d')
+
+        if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "200" ]; then
+          EVENT_ID=$(echo "$BODY" | jq -r '.eventId // empty')
+          STATUS=$(echo "$BODY" | jq -r '.status // "created"')
+          echo "event-id=$EVENT_ID" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "✅ Deployment event sent successfully (ID: $EVENT_ID, Status: $STATUS)"
+        else
+          echo "::error::OllinAI API returned HTTP $HTTP_CODE: $BODY"
+          exit 1
+        fi

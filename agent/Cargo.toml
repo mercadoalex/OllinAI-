@@ -1,0 +1,67 @@
+[package]
+name = "ollinai-agent"
+version = "0.1.0"
+edition = "2021"
+description = "OllinAI eBPF runtime telemetry agent for CI/CD pipeline monitoring"
+authors = ["OllinAI <engineering@ollinai.dev>"]
+license = "Proprietary"
+
+[dependencies]
+# System
+libc = "0.2"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+# HTTP client for Collector API
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# Cryptography (Ed25519 signing)
+ring = "0.17"
+
+# CLI argument parsing
+clap = { version = "4", features = ["derive", "env"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID generation
+uuid = { version = "1", features = ["v4"] }
+
+# SHA-256 digest
+sha2 = "0.10"
+
+# Base64 encoding for attestation signatures
+base64 = "0.22"
+
+# Regex for rule pattern matching
+regex = "1"
+
+# Error handling
+thiserror = "1"
+
+# eBPF (Linux-only, requires kernel headers and libelf at build time)
+[target.'cfg(target_os = "linux")'.dependencies]
+libbpf-rs = "0.23"
+
+[dev-dependencies]
+proptest = "1"
+tokio-test = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+panic = "abort"
+
+[profile.dev]
+opt-level = 0

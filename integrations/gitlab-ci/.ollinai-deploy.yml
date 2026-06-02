@@ -1,0 +1,101 @@
+# OllinAI Deployment Event — GitLab CI Template
+#
+# Include this template in your .gitlab-ci.yml to automatically send
+# deployment events to OllinAI for risk scoring and DORA metrics.
+#
+# Usage:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/ollinai/integrations/main/gitlab-ci/.ollinai-deploy.yml'
+#
+#   deploy:
+#     extends: .ollinai-deploy
+#     variables:
+#       OLLINAI_SERVICES: "my-service"
+#       OLLINAI_ENVIRONMENT: "production"
+#
+# Required CI/CD Variables (set in GitLab project settings):
+#   - OLLINAI_API_URL: OllinAI API base URL (e.g., https://app.ollinai.com)
+#   - OLLINAI_SECRET_KEY: Integration secret key for HMAC signing
+#
+# Requirements: 10.1, 10.2, 10.3
+
+.ollinai-deploy:
+  stage: deploy
+  variables:
+    OLLINAI_SERVICES: ""
+    OLLINAI_ENVIRONMENT: "production"
+    OLLINAI_AUTHOR: "${GITLAB_USER_LOGIN}"
+  script:
+    - |
+      # Validate required variables
+      if [ -z "$OLLINAI_API_URL" ]; then
+        echo "ERROR: OLLINAI_API_URL is not set"
+        exit 1
+      fi
+      if [ -z "$OLLINAI_SECRET_KEY" ]; then
+        echo "ERROR: OLLINAI_SECRET_KEY is not set"
+        exit 1
+      fi
+      if [ -z "$OLLINAI_SERVICES" ]; then
+        echo "ERROR: OLLINAI_SERVICES is not set"
+        exit 1
+      fi
+
+      # Build commit SHAs array (use CI_COMMIT_SHA as default)
+      COMMITS="${OLLINAI_COMMIT_SHAS:-$CI_COMMIT_SHA}"
+
+      # Convert comma-separated services to JSON array
+      SVC_JSON=$(echo "$OLLINAI_SERVICES" | tr ',' '\n' | jq -R . | jq -s .)
+      COMMIT_JSON=$(echo "$COMMITS" | tr ',' '\n' | jq -R . | jq -s .)
+
+      # Build payload
+      PAYLOAD=$(jq -n \
+        --argjson commitShas "$COMMIT_JSON" \
+        --argjson services "$SVC_JSON" \
+        --arg author "${OLLINAI_AUTHOR}" \
+        --arg environment "${OLLINAI_ENVIRONMENT}" \
+        --arg deploymentTimestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        '{
+          commitShas: $commitShas,
+          services: $services,
+          author: $author,
+          environment: $environment,
+          deploymentTimestamp: $deploymentTimestamp
+        }')
+
+      # Add change size if available
+      if [ -n "$OLLINAI_LINES_ADDED" ]; then
+        PAYLOAD=$(echo "$PAYLOAD" | jq \
+          --arg la "${OLLINAI_LINES_ADDED:-0}" \
+          --arg lr "${OLLINAI_LINES_REMOVED:-0}" \
+          --arg fc "${OLLINAI_FILES_CHANGED:-0}" \
+          '. + {changeSize: {linesAdded: ($la | tonumber), linesRemoved: ($lr | tonumber), filesChanged: ($fc | tonumber)}}')
+      fi
+
+      # Validate payload size (max 1 MB = 1048576 bytes)
+      PAYLOAD_SIZE=$(echo -n "$PAYLOAD" | wc -c)
+      if [ "$PAYLOAD_SIZE" -gt 1048576 ]; then
+        echo "ERROR: Payload exceeds maximum size of 1 MB"
+        exit 1
+      fi
+
+      # Compute HMAC-SHA256 signature
+      SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$OLLINAI_SECRET_KEY" -binary | xxd -p -c 256)
+
+      # Send request to OllinAI
+      HTTP_RESPONSE=$(curl -s -w "%{http_code}" \
+        -X POST "${OLLINAI_API_URL}/api/webhooks/deployments" \
+        -H "Content-Type: application/json" \
+        -H "X-OllinAI-Signature: sha256=${SIGNATURE}" \
+        -d "$PAYLOAD" \
+        -o /tmp/ollinai-response.json)
+
+      BODY=$(cat /tmp/ollinai-response.json)
+
+      if [ "$HTTP_RESPONSE" = "201" ] || [ "$HTTP_RESPONSE" = "200" ]; then
+        EVENT_ID=$(echo "$BODY" | jq -r '.eventId // "unknown"')
+        echo "✅ OllinAI deployment event created: $EVENT_ID"
+      else
+        echo "⚠️ OllinAI API returned HTTP $HTTP_RESPONSE: $BODY"
+        # Non-blocking — don't fail the pipeline if OllinAI is unreachable
+      fi

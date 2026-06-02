@@ -1,0 +1,72 @@
+# OllinAI Agent — Multi-stage build
+# Stage 1: Build static musl binary
+# Stage 2: Distroless runtime image for Kubernetes sidecars
+
+# ============================================================
+# Stage 1: Rust builder with musl target
+# ============================================================
+FROM rust:1.77-alpine AS builder
+
+# Install build dependencies for musl static linking and libbpf
+RUN apk add --no-cache \
+    musl-dev \
+    elfutils-dev \
+    zlib-dev \
+    zlib-static \
+    clang \
+    llvm \
+    make \
+    pkgconfig \
+    linux-headers
+
+# Add musl target
+RUN rustup target add x86_64-unknown-linux-musl
+
+WORKDIR /build
+
+# Cache dependencies by copying manifests first
+COPY Cargo.toml Cargo.lock* ./
+COPY .cargo .cargo
+
+# Create dummy source to build dependencies
+RUN mkdir -p src && \
+    echo 'fn main() { println!("placeholder"); }' > src/main.rs && \
+    cargo build --release --target x86_64-unknown-linux-musl || true && \
+    rm -rf src
+
+# Copy actual source code
+COPY src/ src/
+
+# Build the release binary (static, musl-linked)
+RUN cargo build --release --target x86_64-unknown-linux-musl && \
+    strip /build/target/x86_64-unknown-linux-musl/release/ollinai-agent
+
+# ============================================================
+# Stage 2: Distroless runtime (no shell, no package manager)
+# ============================================================
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
+
+# Labels
+LABEL org.opencontainers.image.title="OllinAI Agent"
+LABEL org.opencontainers.image.description="eBPF runtime telemetry agent for CI/CD pipeline monitoring"
+LABEL org.opencontainers.image.vendor="OllinAI"
+
+# Copy the statically-linked binary
+COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/ollinai-agent /usr/local/bin/ollinai-agent
+
+# Copy pre-compiled BPF object files (built separately via Dockerfile.bpf-builder)
+# These are expected to be provided at image build time or mounted at runtime
+# COPY bpf/*.bpf.o /usr/lib/ollinai/bpf/
+
+# Default configuration location
+# Mount actual config at runtime: -v /path/to/agent.yaml:/etc/ollinai/agent.yaml
+VOLUME ["/etc/ollinai"]
+
+# BPF object files directory
+VOLUME ["/usr/lib/ollinai/bpf"]
+
+# Run as non-root (capabilities are granted via Kubernetes securityContext or Docker --cap-add)
+USER nonroot:nonroot
+
+ENTRYPOINT ["/usr/local/bin/ollinai-agent"]
+CMD ["--config", "/etc/ollinai/agent.yaml"]
