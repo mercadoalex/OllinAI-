@@ -1,19 +1,15 @@
-"use client";
+"use client"
 
 /**
- * Insufficient Data Indicator
- *
- * Displayed when fewer than 3 deployment events exist for the selected
- * scope and time range, instead of rendering potentially misleading visualizations.
- *
- * Requirements: 9.8
+ * Insufficient Data Indicator — Redesigned
  */
 
+import { AlertCircle, Rocket } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+
 export interface InsufficientDataProps {
-  /** Total number of events found */
-  eventCount: number;
-  /** Minimum events required */
-  minimumRequired?: number;
+  eventCount: number
+  minimumRequired?: number
 }
 
 export function InsufficientData({
@@ -21,60 +17,35 @@ export function InsufficientData({
   minimumRequired = 3,
 }: InsufficientDataProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "48px 24px",
-        borderRadius: "8px",
-        border: "1px dashed #d1d5db",
-        backgroundColor: "#f9fafb",
-        textAlign: "center",
-      }}
-    >
-      <div
-        style={{
-          width: "48px",
-          height: "48px",
-          borderRadius: "50%",
-          backgroundColor: "#fef3c7",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: "16px",
-          fontSize: "24px",
-        }}
-        aria-hidden="true"
-      >
-        ⚠️
-      </div>
-      <h3
-        style={{
-          margin: "0 0 8px 0",
-          fontSize: "18px",
-          fontWeight: 600,
-          color: "#374151",
-        }}
-      >
-        Insufficient Data
-      </h3>
-      <p
-        style={{
-          margin: "0",
-          fontSize: "14px",
-          color: "#6b7280",
-          maxWidth: "400px",
-        }}
-      >
-        At least {minimumRequired} deployment events are required to display
-        metrics and visualizations. Currently{" "}
-        <strong>
-          {eventCount} event{eventCount !== 1 ? "s" : ""}
-        </strong>{" "}
-        recorded for the selected time range.
-      </p>
-    </div>
-  );
+    <Card className="border-dashed">
+      <CardContent className="flex flex-col items-center justify-center py-16">
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50">
+          <AlertCircle className="h-8 w-8 text-amber-500" />
+        </div>
+        <h3 className="mb-2 text-lg font-semibold text-foreground">
+          Insufficient Data
+        </h3>
+        <p className="mb-6 max-w-md text-center text-sm text-muted-foreground">
+          At least {minimumRequired} deployment events are required to display
+          metrics and visualizations. Currently{" "}
+          <strong className="text-foreground">
+            {eventCount} event{eventCount !== 1 ? "s" : ""}
+          </strong>{" "}
+          recorded for the selected time range.
+        </p>
+        
+        <div className="rounded-lg border bg-muted/50 p-4 max-w-sm w-full">
+          <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+            <Rocket className="h-4 w-4" />
+            Quick Setup
+          </h4>
+          <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
+            <li>Configure your CI/CD pipeline to send deployment events</li>
+            <li>Connect your incident management system</li>
+            <li>Wait for data to populate (usually within minutes)</li>
+          </ol>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }

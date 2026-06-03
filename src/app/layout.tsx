@@ -1,19 +1,28 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
+import "./globals.css"
 
 export const metadata: Metadata = {
   title: "OllinAI — Change Intelligence & Deployment Risk",
   description:
     "Reduce change failure rates, track DORA metrics, and understand the risk profile of every deployment.",
-};
+}
+
+export const viewport: Viewport = {
+  themeColor: "#1e293b",
+  width: "device-width",
+  initialScale: 1,
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} bg-background`}>
+      <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
-  );
+  )
 }

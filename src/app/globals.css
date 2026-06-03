@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222 47% 11%);
+  
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222 47% 11%);
+  
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(222 47% 11%);
+  
+  --color-primary: hsl(222 47% 11%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  
+  --color-secondary: hsl(210 40% 96%);
+  --color-secondary-foreground: hsl(222 47% 11%);
+  
+  --color-muted: hsl(210 40% 96%);
+  --color-muted-foreground: hsl(215 16% 47%);
+  
+  --color-accent: hsl(210 40% 96%);
+  --color-accent-foreground: hsl(222 47% 11%);
+  
+  --color-destructive: hsl(0 84% 60%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  
+  --color-border: hsl(214 32% 91%);
+  --color-input: hsl(214 32% 91%);
+  --color-ring: hsl(222 47% 11%);
+  
+  --radius: 0.5rem;
+  
+  /* Sidebar - Dark theme */
+  --color-sidebar: hsl(222 47% 11%);
+  --color-sidebar-foreground: hsl(210 40% 98%);
+  --color-sidebar-muted: hsl(217 33% 17%);
+  --color-sidebar-muted-foreground: hsl(215 20% 65%);
+  --color-sidebar-accent: hsl(217 33% 17%);
+  --color-sidebar-accent-foreground: hsl(210 40% 98%);
+  --color-sidebar-border: hsl(217 33% 17%);
+  
+  /* Risk colors */
+  --color-risk-low: hsl(142 76% 36%);
+  --color-risk-medium: hsl(45 93% 47%);
+  --color-risk-high: hsl(25 95% 53%);
+  --color-risk-critical: hsl(0 84% 60%);
+  
+  /* Chart colors */
+  --color-chart-1: hsl(217 91% 60%);
+  --color-chart-2: hsl(142 76% 36%);
+  --color-chart-3: hsl(45 93% 47%);
+  --color-chart-4: hsl(0 84% 60%);
+  
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom utility for border-border since Tailwind v4 needs explicit border-color utility */
+@utility border-border {
+  border-color: var(--color-border);
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-sidebar-muted);
+  border-radius: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sidebar-muted-foreground);
+}
