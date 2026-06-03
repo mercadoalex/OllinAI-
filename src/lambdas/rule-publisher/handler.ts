@@ -8,7 +8,7 @@
  * Requirements: 18.1, 18.2, 18.7, 18.8
  */
 
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
