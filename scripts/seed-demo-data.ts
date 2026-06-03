@@ -189,7 +189,7 @@ async function seedDeploymentEvents(): Promise<string[]> {
       createdAt: iso,
       // GSI attributes
       GSI1SK: `TS#${iso}`,
-      GSI2PK: `TENANT#${TENANT_ID}#TEAM#${TEAM_ID}`,
+      GSI2PK: `TENANT#${TENANT_ID}#TEAM#ALL`,
       GSI2SK: `DEPLOY#${iso}`,
       GSI3PK: `TENANT#${TENANT_ID}#DEDUP`,
       GSI3SK: `${commitSha}#${service}#${env}`,
