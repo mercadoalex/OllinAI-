@@ -172,7 +172,7 @@ export interface TenantScopedDeleteInput
  * ```
  */
 export function withTenantScope<
-  T extends { Key?: Record<string, unknown>; ExpressionAttributeValues?: Record<string, unknown>; Item?: Record<string, unknown> }
+  T
 >(tenantId: string, input: T): T {
   if (!tenantId || tenantId.trim() === "") {
     throw new Error("tenantId is required for all data access operations");
@@ -180,9 +180,11 @@ export function withTenantScope<
 
   const expectedPrefix = `TENANT#${tenantId}`;
 
+  const inputAny = input as any;
+
   // Check partition key in Key (Get, Update, Delete)
-  if (input.Key && "PK" in input.Key) {
-    const pk = input.Key.PK as string;
+  if (inputAny.Key && "PK" in inputAny.Key) {
+    const pk = inputAny.Key.PK as string;
     if (!pk.startsWith(expectedPrefix)) {
       throw new Error(
         `Tenant isolation violation: Key.PK "${pk}" does not belong to tenant "${tenantId}"`
@@ -191,8 +193,8 @@ export function withTenantScope<
   }
 
   // Check partition key in Item (Put)
-  if (input.Item && "PK" in input.Item) {
-    const pk = input.Item.PK as string;
+  if (inputAny.Item && "PK" in inputAny.Item) {
+    const pk = inputAny.Item.PK as string;
     if (!pk.startsWith(expectedPrefix)) {
       throw new Error(
         `Tenant isolation violation: Item.PK "${pk}" does not belong to tenant "${tenantId}"`
@@ -201,8 +203,8 @@ export function withTenantScope<
   }
 
   // Check partition key in ExpressionAttributeValues (Query)
-  if (input.ExpressionAttributeValues) {
-    const values = input.ExpressionAttributeValues;
+  if (inputAny.ExpressionAttributeValues) {
+    const values = inputAny.ExpressionAttributeValues;
     // Check common partition key value names
     const pkValueKeys = [":pk", ":PK", ":partitionKey"];
     for (const key of pkValueKeys) {

@@ -12,9 +12,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-export type GateDecision = "proceed" | "warn" | "block";
+type GateDecision = "proceed" | "warn" | "block";
 
-export interface GateResult {
+interface GateResult {
   decision: GateDecision;
   combinedScore: number;
   predictionScore: number;
@@ -27,12 +27,12 @@ export interface GateResult {
   evaluatedAt: string;
 }
 
-export interface GateThresholds {
+interface GateThresholds {
   warnThreshold: number;
   blockThreshold: number;
 }
 
-export interface GateRequest {
+interface GateRequest {
   serviceId: string;
   eventId: string;
   predictionScore: number;
@@ -57,7 +57,7 @@ const DEFAULT_THRESHOLDS: GateThresholds = {
 /**
  * Combine ML prediction score and rule-based risk score.
  */
-export function combineScores(
+function combineScores(
   predictionScore: number,
   riskScore: number
 ): number {
@@ -68,7 +68,7 @@ export function combineScores(
 /**
  * Make a gate decision based on combined score and thresholds.
  */
-export function makeGateDecision(
+function makeGateDecision(
   combinedScore: number,
   thresholds: GateThresholds
 ): GateDecision {
@@ -84,7 +84,7 @@ export function makeGateDecision(
 /**
  * Generate mitigation suggestions for blocked deployments.
  */
-export function generateMitigations(
+function generateMitigations(
   factors: string[],
   riskSeverity: string
 ): string[] {
@@ -116,7 +116,7 @@ export function generateMitigations(
 /**
  * Evaluate the deployment gate.
  */
-export function evaluateGate(request: GateRequest): GateResult {
+function evaluateGate(request: GateRequest): GateResult {
   const thresholds: GateThresholds = {
     warnThreshold:
       request.customThresholds?.warnThreshold ?? DEFAULT_THRESHOLDS.warnThreshold,

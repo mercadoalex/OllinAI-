@@ -1,0 +1,25 @@
+# Infrastructure (not needed for Vercel deployment)
+infra/terraform/.terraform/
+infra/terraform/bootstrap/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/bootstrap/*.tfstate
+infra/terraform/placeholder.zip
+
+# Rust agent (deployed separately via container)
+agent/target/
+
+# Build artifacts
+.next/
+dist/
+coverage/
+
+# Tests
+tests/
+playwright-report/
+test-results/
+
+# Git
+.git/
+
+# Scripts (not needed at runtime)
+scripts/

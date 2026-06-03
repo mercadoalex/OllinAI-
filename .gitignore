@@ -59,6 +59,15 @@ cdk.out/
 .aws-sam/
 samconfig.toml
 
+# ─── Terraform ──────────────────────────────────────────────────────────────
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+terraform.tfvars
+infra/terraform/placeholder.zip
+
 # ─── Secrets and Keys ───────────────────────────────────────────────────────
 *.pem
 *.key
@@ -79,3 +88,4 @@ shared-local-instance.db
 dist/
 tmp/
 temp/
+.env*

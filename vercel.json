@@ -1,0 +1,43 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "regions": ["cle1"],
+  "functions": {
+    "src/app/api/webhooks/**/*.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/collector/**/*.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/v1/**/*.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/metrics/**/*.ts": {
+      "maxDuration": 15
+    },
+    "src/app/api/risk/**/*.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/gates/**/*.ts": {
+      "maxDuration": 10
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/health"
+    }
+  ]
+}

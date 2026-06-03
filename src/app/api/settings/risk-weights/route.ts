@@ -30,7 +30,7 @@ import type { RiskWeightsConfigItem } from "@/lib/types/dynamo";
 const SORT_KEY = "SETTINGS#risk_weights";
 
 /** Default risk factor weights (must sum to 1.0) */
-export const DEFAULT_RISK_WEIGHTS = {
+const DEFAULT_RISK_WEIGHTS = {
   changeFailureRate: 0.35,
   changeSize: 0.25,
   deploymentTiming: 0.20,

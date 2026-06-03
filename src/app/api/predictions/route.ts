@@ -43,7 +43,7 @@ interface RootCauseAnalysis {
 /**
  * Detect 3σ anomalies in prediction scores.
  */
-export function detectAnomalies(
+function detectAnomalies(
   scores: number[],
   currentScore: number
 ): { isAnomaly: boolean; deviation: number; threshold: number } {
@@ -73,7 +73,7 @@ export function detectAnomalies(
 /**
  * Generate root cause analysis for predicted incidents.
  */
-export function generateRootCauseRanking(
+function generateRootCauseRanking(
   predictions: Array<{ eventId: string; score: number; factors: string[] }>
 ): RootCauseAnalysis[] {
   return predictions

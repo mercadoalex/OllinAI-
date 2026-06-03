@@ -57,9 +57,9 @@ const CollectorRequestSchema = z.object({
   { message: "At least one of telemetry_batch or build_attestation must be provided" }
 );
 
-export type CollectorRequest = z.infer<typeof CollectorRequestSchema>;
-export type TelemetryBatchPayload = z.infer<typeof TelemetryBatchSchema>;
-export type BuildAttestationPayload = z.infer<typeof BuildAttestationSchema>;
+type CollectorRequest = z.infer<typeof CollectorRequestSchema>;
+type TelemetryBatchPayload = z.infer<typeof TelemetryBatchSchema>;
+type BuildAttestationPayload = z.infer<typeof BuildAttestationSchema>;
 
 // ─── Authentication ────────────────────────────────────────────────────────────
 
@@ -67,7 +67,7 @@ export type BuildAttestationPayload = z.infer<typeof BuildAttestationSchema>;
  * Validates the agent authentication token from the Authorization header.
  * Returns the tenant ID if valid, null if invalid.
  */
-export function validateAgentToken(request: NextRequest): {
+function validateAgentToken(request: NextRequest): {
   valid: boolean;
   tenantId?: string;
   error?: string;
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * Persists a telemetry batch to the SQS agent-telemetry queue.
  * Returns the SQS message ID.
  */
-export async function persistTelemetryBatch(
+async function persistTelemetryBatch(
   batch: TelemetryBatchPayload
 ): Promise<string> {
   const message: SqsEventMessage = {
@@ -216,7 +216,7 @@ export async function persistTelemetryBatch(
  * Persists a Build_Attestation document to the ollinai-attestations DynamoDB table.
  * Returns the attestation ID.
  */
-export async function persistBuildAttestation(
+async function persistBuildAttestation(
   tenantId: string,
   serviceId: string,
   pipelineId: string | undefined,
