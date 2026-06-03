@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "test:properties": "vitest run tests/properties",
     "db:local:create": "npx tsx scripts/create-local-tables.ts",
-    "db:local:recreate": "npx tsx scripts/create-local-tables.ts --force"
+    "db:local:recreate": "npx tsx scripts/create-local-tables.ts --force",
+    "db:seed": "npx tsx scripts/seed-demo-data.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.700.0",
