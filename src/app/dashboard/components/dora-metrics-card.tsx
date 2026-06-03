@@ -94,19 +94,20 @@ const TREND_CONFIG = {
 export function DORAMetricsCard({ metrics }: DORAMetricsCardProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {metrics.map((metric) => {
+      {metrics.map((metric, index) => {
         const trendConfig = TREND_CONFIG[metric.trend]
         const TrendIcon = trendConfig.Icon
         const isInsufficient = metric.value === "insufficient_data"
         const percentChange = computePercentChange(metric.value, metric.previousValue ?? "insufficient_data")
         
-        // Generate sparkline data based on trend
+        // Generate sparkline data based on trend with unique seed per metric
         const sparklineData = generateSparklineData(30, 
           metric.trend === "improving" 
             ? (metric.lowerIsBetter ? "down" : "up")
             : metric.trend === "degrading"
               ? (metric.lowerIsBetter ? "up" : "down")
-              : "stable"
+              : "stable",
+          index * 1000 + 42 // Unique seed per metric for consistent rendering
         )
 
         return (
@@ -114,18 +115,18 @@ export function DORAMetricsCard({ metrics }: DORAMetricsCardProps) {
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-sm font-medium text-gray-500">
                     {metric.label}
                   </p>
                   <div className="flex items-baseline gap-1">
                     <span className={cn(
                       "text-2xl font-bold tracking-tight",
-                      isInsufficient ? "text-muted-foreground" : "text-foreground"
+                      isInsufficient ? "text-gray-400" : "text-gray-900"
                     )}>
                       {formatMetricValue(metric.value, metric.unit)}
                     </span>
                     {!isInsufficient && (
-                      <span className="text-sm text-muted-foreground">{metric.unit}</span>
+                      <span className="text-sm text-gray-500">{metric.unit}</span>
                     )}
                   </div>
                 </div>
@@ -148,7 +149,7 @@ export function DORAMetricsCard({ metrics }: DORAMetricsCardProps) {
               <div className="mt-4">
                 {isInsufficient ? (
                   <div className="h-8 flex items-center">
-                    <span className="text-xs text-muted-foreground">Insufficient data</span>
+                    <span className="text-xs text-gray-400">Insufficient data</span>
                   </div>
                 ) : (
                   <Sparkline 

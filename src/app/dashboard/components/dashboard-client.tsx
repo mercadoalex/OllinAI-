@@ -56,14 +56,14 @@ export interface DashboardClientProps {
 const POLLING_INTERVAL_MS = 30_000
 const MINIMUM_EVENTS = 3
 
-// Demo data for showcasing the dashboard
+// Static demo data - no Date.now() calls to avoid hydration mismatches
 const DEMO_METRICS: DORAMetricsResponse = {
   deploymentFrequency: 4.2,
   leadTimeHours: 18.5,
   changeFailureRate: 12.3,
   mttrHours: 2.1,
   unresolvedIncidentCount: 3,
-  period: { start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), end: new Date().toISOString() },
+  period: { start: "2026-05-04T00:00:00.000Z", end: "2026-06-03T00:00:00.000Z" },
   filters: {},
 }
 
@@ -73,7 +73,7 @@ const DEMO_PREVIOUS_METRICS: DORAMetricsResponse = {
   changeFailureRate: 15.7,
   mttrHours: 2.8,
   unresolvedIncidentCount: 5,
-  period: { start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), end: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
+  period: { start: "2026-04-04T00:00:00.000Z", end: "2026-05-04T00:00:00.000Z" },
   filters: {},
 }
 
@@ -104,7 +104,14 @@ export function DashboardClient({
   const [totalEvents, setTotalEvents] = useState(useDemoMode ? 88 : initialData.totalEvents)
   const [isLoading, setIsLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [deployments, setDeployments] = useState<Deployment[]>(() => generateMockDeployments(20))
+  const [deployments, setDeployments] = useState<Deployment[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  // Generate deployments only on client side to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+    setDeployments(generateMockDeployments(20))
+  }, [])
 
   const fetchData = useCallback(async (days: TimeRangeDays) => {
     try {
@@ -189,10 +196,10 @@ export function DashboardClient({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             OllinAI — Change Intelligence
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             DORA metrics and deployment risk overview
           </p>
         </div>
@@ -201,8 +208,8 @@ export function DashboardClient({
             onClick={handleRefresh}
             disabled={isRefreshing}
             className={cn(
-              "inline-flex items-center justify-center rounded-md border border-input bg-background p-2",
-              "hover:bg-accent hover:text-accent-foreground transition-colors",
+              "inline-flex items-center justify-center rounded-md border border-gray-200 bg-white p-2",
+              "hover:bg-gray-50 transition-colors",
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
             aria-label="Refresh data"
@@ -219,7 +226,7 @@ export function DashboardClient({
 
       {/* Loading overlay */}
       {isLoading && (
-        <div className="text-sm text-muted-foreground">Refreshing data…</div>
+        <div className="text-sm text-gray-500">Refreshing data…</div>
       )}
 
       {/* Insufficient data state */}

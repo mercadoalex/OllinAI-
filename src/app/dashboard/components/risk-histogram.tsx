@@ -41,7 +41,7 @@ export function RiskHistogram({ distribution, totalDeployments }: RiskHistogramP
           <CardTitle className="text-base font-semibold">Risk Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-32 items-center justify-center text-sm text-gray-500">
             No deployments with risk scores in this period.
           </div>
         </CardContent>
@@ -54,7 +54,7 @@ export function RiskHistogram({ distribution, totalDeployments }: RiskHistogramP
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold">Risk Distribution</CardTitle>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-gray-500">
             {displayTotal} deployment{displayTotal !== 1 ? "s" : ""}
           </span>
         </div>
@@ -74,7 +74,7 @@ export function RiskHistogram({ distribution, totalDeployments }: RiskHistogramP
                     <div className={cn("h-3 w-3 rounded-sm", config.fill)} />
                     <span className="font-medium">{config.label}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-2 text-gray-500">
                     <span>{count}</span>
                     <span className="w-12 text-right">({percentage.toFixed(0)}%)</span>
                   </div>

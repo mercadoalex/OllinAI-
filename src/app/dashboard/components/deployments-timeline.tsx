@@ -4,6 +4,7 @@
  * Recent Deployments Timeline
  */
 
+import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "@/lib/date-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +33,13 @@ const ENV_CONFIG = {
 }
 
 export function DeploymentsTimeline({ deployments, isLoading }: DeploymentsTimelineProps) {
+  // Only render time-dependent content after hydration
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   if (deployments.length === 0 && !isLoading) {
     return (
       <Card>
@@ -52,7 +60,7 @@ export function DeploymentsTimeline({ deployments, isLoading }: DeploymentsTimel
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold">Recent Deployments</CardTitle>
-          <span className="text-xs text-muted-foreground">Last 20 events</span>
+          <span className="text-xs text-gray-500">Last 20 events</span>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -95,8 +103,8 @@ export function DeploymentsTimeline({ deployments, isLoading }: DeploymentsTimel
                     key={deployment.id} 
                     className="border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(deployment.timestamp))}
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                      {mounted ? formatDistanceToNow(new Date(deployment.timestamp)) : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -107,7 +115,7 @@ export function DeploymentsTimeline({ deployments, isLoading }: DeploymentsTimel
                         <span className="text-sm font-medium">{deployment.serviceName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                    <td className="px-4 py-3 text-sm text-gray-500">
                       {deployment.author}
                     </td>
                     <td className="px-4 py-3">
@@ -129,7 +137,7 @@ export function DeploymentsTimeline({ deployments, isLoading }: DeploymentsTimel
                           {deployment.correlatedIncidents}
                         </Badge>
                       ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
+                        <span className="text-sm text-gray-500">—</span>
                       )}
                     </td>
                   </tr>

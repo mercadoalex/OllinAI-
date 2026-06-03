@@ -68,20 +68,30 @@ export function Sparkline({
   )
 }
 
-// Generate mock sparkline data for demo
-export function generateSparklineData(points: number = 30, trend: "up" | "down" | "stable" = "stable"): number[] {
+// Generate deterministic sparkline data using a seed for consistent SSR/client rendering
+export function generateSparklineData(points: number = 30, trend: "up" | "down" | "stable" = "stable", seed: number = 42): number[] {
   const data: number[] = []
   let value = 50
   
+  // Simple seeded pseudo-random number generator (mulberry32)
+  let state = seed
+  const seededRandom = () => {
+    state |= 0
+    state = state + 0x6D2B79F5 | 0
+    let t = Math.imul(state ^ state >>> 15, 1 | state)
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t
+    return ((t ^ t >>> 14) >>> 0) / 4294967296
+  }
+  
   for (let i = 0; i < points; i++) {
-    // Add some randomness
-    const noise = (Math.random() - 0.5) * 10
+    // Add deterministic noise
+    const noise = (seededRandom() - 0.5) * 10
     
     // Apply trend
     if (trend === "up") {
-      value += Math.random() * 2
+      value += seededRandom() * 2
     } else if (trend === "down") {
-      value -= Math.random() * 2
+      value -= seededRandom() * 2
     }
     
     data.push(Math.max(0, value + noise))
