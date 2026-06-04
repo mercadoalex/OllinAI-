@@ -6,6 +6,8 @@
 
 OllinAI is a B2B SaaS platform that helps engineering teams reduce change failure rates, track DORA metrics, and understand the risk profile of every deployment. It ingests deployment events from CI/CD pipelines, correlates them with production incidents, computes risk scores, and provides actionable recommendations powered by machine learning.
 
+![OllinAI Logo](./logoOllinAI_white.png)
+
 ---
 
 ## The Problem
