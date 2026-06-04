@@ -58,11 +58,19 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if email already registered
-  const exists = await emailExists(email);
-  if (exists) {
+  try {
+    const exists = await emailExists(email);
+    if (exists) {
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 409 }
+      );
+    }
+  } catch (error: any) {
+    console.error("Registration error (email check):", error);
     return NextResponse.json(
-      { error: "An account with this email already exists" },
-      { status: 409 }
+      { error: "Service temporarily unavailable. Please try again later." },
+      { status: 503 }
     );
   }
 
