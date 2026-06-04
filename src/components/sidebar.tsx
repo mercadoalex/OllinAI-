@@ -21,7 +21,7 @@ const navigation = [
   { name: "Services", href: "/dashboard/services", icon: Boxes },
   { name: "Teams", href: "/dashboard/teams", icon: Users },
   { name: "Predictions", href: "/dashboard/predictions", icon: TrendingUp },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
 export function Sidebar() {
