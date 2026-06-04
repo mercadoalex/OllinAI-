@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Settings,
   Activity,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -65,7 +66,7 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border p-4">
+      <div className="border-t border-sidebar-border p-4 space-y-3">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-sidebar-muted flex items-center justify-center">
             <span className="text-xs font-medium text-sidebar-foreground">CI</span>
@@ -79,6 +80,13 @@ export function Sidebar() {
             </p>
           </div>
         </div>
+        <Link
+          href="/sign-in"
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-muted rounded-lg transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </Link>
       </div>
     </aside>
   )
