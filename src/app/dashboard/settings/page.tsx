@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react"
 import {
-  Settings,
-  Users,
   CreditCard,
   Webhook,
   GitBranch,
@@ -14,10 +12,6 @@ import {
   Trash2,
   Zap,
   X,
-  GripVertical,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   Circle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -27,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 // Types
 // ============================================================================
 
-type TabId = "teams" | "integrations" | "billing"
+type TabId = "integrations" | "billing"
 
 interface Integration {
   id: string
@@ -37,26 +31,6 @@ interface Integration {
   lastEventAt: string | null
   secretKey: string
   createdAt: string
-}
-
-interface Team {
-  id: string
-  name: string
-  description: string
-  memberCount: number
-  serviceCount: number
-  metrics: {
-    deploymentFrequency: number
-    leadTimeHours: number
-    changeFailureRate: number
-    mttrHours: number
-  }
-}
-
-interface Service {
-  id: string
-  name: string
-  teamId: string | null
 }
 
 type PlanTier = "starter" | "pro" | "enterprise"
@@ -113,48 +87,6 @@ function generateIntegrations(): Integration[] {
       "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(rand() * 36)]
     ).join("")}`,
     createdAt: new Date(Date.parse("2026-01-01T00:00:00Z") + Math.floor(rand() * 150 * 24 * 60 * 60 * 1000)).toISOString(),
-  }))
-}
-
-const TEAM_NAMES = ["Platform", "Frontend", "Backend", "Data", "Mobile", "DevOps"]
-
-function generateTeams(): Team[] {
-  const rand = seededRandom(54321)
-  return TEAM_NAMES.map((name, i) => ({
-    id: `team-${String(i + 1).padStart(4, "0")}`,
-    name,
-    description: `${name} engineering team`,
-    memberCount: Math.floor(rand() * 12) + 3,
-    serviceCount: Math.floor(rand() * 8) + 1,
-    metrics: {
-      deploymentFrequency: Math.round((rand() * 10 + 1) * 10) / 10,
-      leadTimeHours: Math.round((rand() * 48 + 2) * 10) / 10,
-      changeFailureRate: Math.round(rand() * 25 * 10) / 10,
-      mttrHours: Math.round((rand() * 8 + 0.5) * 10) / 10,
-    },
-  }))
-}
-
-const SERVICE_NAMES = [
-  "user-service",
-  "payment-service",
-  "notification-service",
-  "analytics-service",
-  "auth-service",
-  "api-gateway",
-  "search-service",
-  "media-service",
-  "recommendation-engine",
-  "logging-service",
-]
-
-function generateServices(): Service[] {
-  const rand = seededRandom(98765)
-  const teams = generateTeams()
-  return SERVICE_NAMES.map((name, i) => ({
-    id: `svc-${String(i + 1).padStart(4, "0")}`,
-    name,
-    teamId: rand() > 0.2 ? teams[Math.floor(rand() * teams.length)].id : null,
   }))
 }
 
@@ -576,260 +508,6 @@ function IntegrationsTab() {
 }
 
 // ============================================================================
-// Teams Tab
-// ============================================================================
-
-function TeamsTab() {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [services, setServices] = useState<Service[]>([])
-  const [mounted, setMounted] = useState(false)
-  const [showTeamModal, setShowTeamModal] = useState(false)
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null)
-  const [teamForm, setTeamForm] = useState({ name: "", description: "" })
-
-  useEffect(() => {
-    setMounted(true)
-    setTeams(generateTeams())
-    setServices(generateServices())
-  }, [])
-
-  const handleOpenCreateModal = () => {
-    setEditingTeam(null)
-    setTeamForm({ name: "", description: "" })
-    setShowTeamModal(true)
-  }
-
-  const handleOpenEditModal = (team: Team) => {
-    setEditingTeam(team)
-    setTeamForm({ name: team.name, description: team.description })
-    setShowTeamModal(true)
-  }
-
-  const handleSaveTeam = () => {
-    if (!teamForm.name.trim()) return
-
-    if (editingTeam) {
-      setTeams((prev) =>
-        prev.map((t) =>
-          t.id === editingTeam.id ? { ...t, name: teamForm.name, description: teamForm.description } : t
-        )
-      )
-    } else {
-      const newTeam: Team = {
-        id: `team-${String(teams.length + 1).padStart(4, "0")}`,
-        name: teamForm.name,
-        description: teamForm.description,
-        memberCount: 0,
-        serviceCount: 0,
-        metrics: {
-          deploymentFrequency: 0,
-          leadTimeHours: 0,
-          changeFailureRate: 0,
-          mttrHours: 0,
-        },
-      }
-      setTeams([newTeam, ...teams])
-    }
-    setShowTeamModal(false)
-  }
-
-  const handleAssignService = (serviceId: string, teamId: string | null) => {
-    setServices((prev) => prev.map((s) => (s.id === serviceId ? { ...s, teamId } : s)))
-    // Update team service counts
-    setTeams((prev) =>
-      prev.map((t) => ({
-        ...t,
-        serviceCount: services.filter((s) => (s.id === serviceId ? teamId === t.id : s.teamId === t.id)).length,
-      }))
-    )
-  }
-
-  const getTrend = (value: number, metric: string) => {
-    // Simple heuristic for demo
-    if (metric === "changeFailureRate" || metric === "leadTimeHours" || metric === "mttrHours") {
-      return value < 10 ? "good" : value < 20 ? "neutral" : "bad"
-    }
-    return value > 5 ? "good" : value > 2 ? "neutral" : "bad"
-  }
-
-  const TrendIcon = ({ trend }: { trend: "good" | "neutral" | "bad" }) => {
-    if (trend === "good") return <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-    if (trend === "bad") return <TrendingDown className="h-3.5 w-3.5 text-red-600" />
-    return <Minus className="h-3.5 w-3.5 text-gray-400" />
-  }
-
-  if (!mounted) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 bg-gray-100 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Teams</h2>
-          <p className="text-sm text-gray-500">Organize services and track team performance</p>
-        </div>
-        <button
-          onClick={handleOpenCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Create Team
-        </button>
-      </div>
-
-      {/* Teams Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {teams.map((team) => (
-          <div
-            key={team.id}
-            className="p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-medium text-gray-900">{team.name}</h3>
-                <p className="text-sm text-gray-500">{team.description}</p>
-              </div>
-              <button
-                onClick={() => handleOpenEditModal(team)}
-                className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
-              >
-                <Settings className="h-4 w-4 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4 mb-4 text-sm">
-              <div className="flex items-center gap-1.5 text-gray-600">
-                <Users className="h-4 w-4" />
-                <span>{team.memberCount} members</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-gray-600">
-                <Webhook className="h-4 w-4" />
-                <span>{team.serviceCount} services</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Deploy Freq</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-900">
-                    {team.metrics.deploymentFrequency}/d
-                  </span>
-                  <TrendIcon trend={getTrend(team.metrics.deploymentFrequency, "deploymentFrequency")} />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Lead Time</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-900">{team.metrics.leadTimeHours}h</span>
-                  <TrendIcon trend={getTrend(team.metrics.leadTimeHours, "leadTimeHours")} />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">CFR</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-900">{team.metrics.changeFailureRate}%</span>
-                  <TrendIcon trend={getTrend(team.metrics.changeFailureRate, "changeFailureRate")} />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">MTTR</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-900">{team.metrics.mttrHours}h</span>
-                  <TrendIcon trend={getTrend(team.metrics.mttrHours, "mttrHours")} />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Service Assignment Section */}
-      <div className="pt-6 border-t border-gray-200">
-        <h3 className="text-md font-semibold text-gray-900 mb-4">Service Assignment</h3>
-        <div className="space-y-2">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
-            >
-              <div className="flex items-center gap-3">
-                <GripVertical className="h-4 w-4 text-gray-300" />
-                <span className="font-mono text-sm text-gray-700">{service.name}</span>
-              </div>
-              <select
-                value={service.teamId || ""}
-                onChange={(e) => handleAssignService(service.id, e.target.value || null)}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-300"
-              >
-                <option value="">Unassigned</option>
-                {teams.map((team) => (
-                  <option key={team.id} value={team.id}>
-                    {team.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Team Modal */}
-      <Modal
-        isOpen={showTeamModal}
-        onClose={() => setShowTeamModal(false)}
-        title={editingTeam ? "Edit Team" : "Create Team"}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
-            <input
-              type="text"
-              value={teamForm.name}
-              onChange={(e) => setTeamForm((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g., Platform"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              value={teamForm.description}
-              onChange={(e) => setTeamForm((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="e.g., Platform engineering team"
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 resize-none"
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={() => setShowTeamModal(false)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveTeam}
-              disabled={!teamForm.name.trim()}
-              className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {editingTeam ? "Save Changes" : "Create Team"}
-            </button>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  )
-}
-
-// ============================================================================
 // Billing Tab
 // ============================================================================
 
@@ -1052,7 +730,6 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("integrations")
 
   const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
-    { id: "teams", label: "Teams", icon: Users },
     { id: "integrations", label: "Integrations", icon: Webhook },
     { id: "billing", label: "Billing", icon: CreditCard },
   ]
@@ -1082,7 +759,6 @@ export default function SettingsPage() {
 
         {/* Tab Content */}
         <div className="max-w-5xl">
-          {activeTab === "teams" && <TeamsTab />}
           {activeTab === "integrations" && <IntegrationsTab />}
           {activeTab === "billing" && <BillingTab />}
         </div>
