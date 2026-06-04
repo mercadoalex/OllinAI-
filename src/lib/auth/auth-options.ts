@@ -9,6 +9,8 @@
 
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { findUserByEmail } from "@/lib/auth/users";
+import { verifyPassword } from "@/lib/auth/passwords";
 import type { UserRole } from "@/lib/types/auth";
 
 /** JWT token max age in seconds (1 hour) */
@@ -27,12 +29,28 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // TODO: Replace with actual user lookup from DynamoDB
-        // For now, this is a placeholder that validates credentials
-        // against the ollinai-config table (SK: USER#{userId})
-        // In production, this would verify the password hash and
-        // return the user record with tenantId, role, and teamIds.
-        return null;
+        // Look up user by email in DynamoDB
+        const user = await findUserByEmail(credentials.email);
+        if (!user) {
+          return null;
+        }
+
+        // Verify password against bcrypt hash
+        const valid = await verifyPassword(credentials.password, user.passwordHash);
+        if (!valid) {
+          return null;
+        }
+
+        // Return user object — NextAuth passes this to the jwt callback
+        return {
+          id: user.userId,
+          email: user.email,
+          name: user.name,
+          tenantId: user.tenantId,
+          userId: user.userId,
+          role: user.role,
+          teamIds: user.teamIds,
+        };
       },
     }),
   ],
@@ -71,7 +89,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
+    signIn: "/sign-in",
+    error: "/sign-in",
   },
 };
