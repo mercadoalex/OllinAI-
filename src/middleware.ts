@@ -17,6 +17,7 @@ const publicPaths = [
   "/api/health",
   "/api/webhooks",
   "/api/collector",
+  "/api/debug",
   "/health",
   "/_next",
   "/favicon.ico",
