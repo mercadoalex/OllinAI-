@@ -16,6 +16,7 @@ import { getDocumentClient } from "@/lib/dynamo/client";
 import { sendMessage, type SqsEventMessage } from "@/lib/sqs/client";
 import { tenantServiceKey } from "@/lib/dynamo/tenant-scope";
 import { randomUUID } from "crypto";
+import { validateAgentToken } from "@/lib/collector/auth";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -60,46 +61,6 @@ const CollectorRequestSchema = z.object({
 type CollectorRequest = z.infer<typeof CollectorRequestSchema>;
 type TelemetryBatchPayload = z.infer<typeof TelemetryBatchSchema>;
 type BuildAttestationPayload = z.infer<typeof BuildAttestationSchema>;
-
-// ─── Authentication ────────────────────────────────────────────────────────────
-
-/**
- * Validates the agent authentication token from the Authorization header.
- * Returns the tenant ID if valid, null if invalid.
- */
-function validateAgentToken(request: NextRequest): {
-  valid: boolean;
-  tenantId?: string;
-  error?: string;
-} {
-  const authHeader = request.headers.get("authorization");
-
-  if (!authHeader) {
-    return { valid: false, error: "Missing Authorization header" };
-  }
-
-  // Expected format: "Bearer <agent-token>" or "AgentKey <integration-key>"
-  const parts = authHeader.split(" ");
-  if (parts.length !== 2) {
-    return { valid: false, error: "Malformed Authorization header" };
-  }
-
-  const [scheme, token] = parts;
-
-  if (scheme !== "Bearer" && scheme !== "AgentKey") {
-    return { valid: false, error: "Unsupported authentication scheme" };
-  }
-
-  // In production, validate the token against the integration keys store.
-  // For now, extract tenant ID from the token structure.
-  // Token format expected: <tenantId>.<secret>
-  const tokenParts = token.split(".");
-  if (tokenParts.length < 2 || !tokenParts[0]) {
-    return { valid: false, error: "Invalid token format" };
-  }
-
-  return { valid: true, tenantId: tokenParts[0] };
-}
 
 // ─── POST Handler ──────────────────────────────────────────────────────────────
 

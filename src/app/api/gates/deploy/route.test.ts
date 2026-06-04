@@ -5,7 +5,7 @@ import {
   evaluateGate,
   generateMitigations,
   type GateRequest,
-} from "./route";
+} from "@/lib/gates/gate-logic";
 
 describe("Deployment Gate API", () => {
   describe("combineScores", () => {

@@ -58,10 +58,8 @@ vi.mock("crypto", async (importOriginal) => {
 
 import {
   POST,
-  validateAgentToken,
-  persistTelemetryBatch,
-  persistBuildAttestation,
 } from "@/app/api/collector/telemetry/route";
+import { validateAgentToken } from "@/lib/collector/auth";
 
 // ─── Test Helpers ──────────────────────────────────────────────────────────────
 

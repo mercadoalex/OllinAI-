@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectAnomalies, generateRootCauseRanking } from "./route";
+import { detectAnomalies, generateRootCauseRanking } from "@/lib/predictions/prediction-logic";
 
 describe("Predictions API Logic", () => {
   describe("detectAnomalies", () => {
