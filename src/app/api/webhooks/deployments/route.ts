@@ -178,7 +178,7 @@ async function checkDeduplication(
   const result = await client.send(
     new QueryCommand({
       TableName: TableNames.EVENTS,
-      IndexName: "GSI3",
+      IndexName: "GSI3-Deduplication",
       KeyConditionExpression: "GSI3PK = :pk AND GSI3SK = :sk",
       ExpressionAttributeValues: {
         ":pk": dedupPK,

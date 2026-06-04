@@ -138,7 +138,7 @@ async function fetchRiskDistribution(
     const result = await client.send(
       new QueryCommand({
         TableName: TableNames.EVENTS,
-        IndexName: "GSI-2",
+        IndexName: "GSI2-TeamView",
         KeyConditionExpression: "GSI2PK = :pk AND GSI2SK BETWEEN :start AND :end",
         ExpressionAttributeValues: {
           ":pk": `TENANT#${tenantId}#TEAM#ALL`,

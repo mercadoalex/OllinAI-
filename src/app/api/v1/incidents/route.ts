@@ -133,7 +133,7 @@ async function queryIncidents(
     const pk = tenantPrefix(tenantId);
     queryParams = withTenantScope(tenantId, {
       TableName: TableNames.INCIDENTS,
-      IndexName: "GSI-1",
+      IndexName: "GSI1-TimeRange",
       KeyConditionExpression: "GSI1PK = :pk AND GSI1SK BETWEEN :start AND :end",
       ExpressionAttributeValues: {
         ":pk": pk,

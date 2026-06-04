@@ -136,7 +136,7 @@ async function queryDeployments(
     const pk = tenantTeamKey(tenantId, filters.team);
     queryParams = withTenantScope(tenantId, {
       TableName: TableNames.EVENTS,
-      IndexName: "GSI-2",
+      IndexName: "GSI2-TeamView",
       KeyConditionExpression: "GSI2PK = :pk AND GSI2SK BETWEEN :start AND :end",
       ExpressionAttributeValues: {
         ":pk": pk,
@@ -150,7 +150,7 @@ async function queryDeployments(
     const pk = tenantTeamKey(tenantId, "ALL");
     queryParams = withTenantScope(tenantId, {
       TableName: TableNames.EVENTS,
-      IndexName: "GSI-2",
+      IndexName: "GSI2-TeamView",
       KeyConditionExpression: "GSI2PK = :pk AND GSI2SK BETWEEN :start AND :end",
       ExpressionAttributeValues: {
         ":pk": pk,
