@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type IntegrationType = "github_actions" | "gitlab_ci" | "custom";
@@ -47,6 +47,22 @@ export default function IntegrationPage() {
   const [secretKey, setSecretKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [integrationId, setIntegrationId] = useState<string | null>(null);
+
+  // Check if step is already complete — skip ahead
+  useEffect(() => {
+    async function checkState() {
+      try {
+        const res = await fetch("/api/onboarding/state", { credentials: "include" });
+        if (res.ok) {
+          const state = await res.json();
+          if (state.steps?.integration_created?.completed) {
+            router.replace("/onboarding/pipeline");
+          }
+        }
+      } catch {}
+    }
+    checkState();
+  }, [router]);
 
   function validateName(value: string): string {
     if (!value) return "";
