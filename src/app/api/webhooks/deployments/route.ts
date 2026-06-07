@@ -24,6 +24,7 @@ import {
 import { sendMessage, type SqsEventMessage } from "@/lib/sqs/client";
 import { QueryCommand, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import type { EventItem } from "@/lib/types/dynamo";
+import { getOnboardingState, completeStep } from "@/lib/onboarding/state";
 
 // ─── Zod Schema ────────────────────────────────────────────────────────────────
 
@@ -347,7 +348,22 @@ export async function POST(request: NextRequest) {
 
   await sendMessage(DEPLOYMENT_EVENTS_QUEUE, sqsMessage);
 
-  // 9. Return HTTP 201 with eventId
+  // 9. Mark onboarding first_event_received step as complete (non-blocking)
+  try {
+    const onboardingState = await getOnboardingState(tenantId);
+    if (
+      onboardingState &&
+      onboardingState.status === "in_progress" &&
+      !onboardingState.steps.first_event_received.completed
+    ) {
+      await completeStep(tenantId, "first_event_received");
+    }
+  } catch (err) {
+    // Non-blocking: onboarding failures must never break webhook ingestion
+    console.error("Non-blocking: failed to update onboarding step for tenant", tenantId, err);
+  }
+
+  // 10. Return HTTP 201 with eventId
   return NextResponse.json(
     { eventId, status: "created" },
     { status: 201 }

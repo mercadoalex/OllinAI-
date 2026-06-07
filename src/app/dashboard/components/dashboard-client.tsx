@@ -22,6 +22,7 @@ import {
   TIME_RANGE_OPTIONS,
 } from "./time-range-selector";
 import { InsufficientData } from "./insufficient-data";
+import { OnboardingBanner } from "./onboarding-banner";
 
 /** Shape of DORA metrics response from the API */
 interface DORAMetricsResponse {
@@ -162,6 +163,9 @@ export function DashboardClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      {/* Onboarding resume banner (shown when onboarding was skipped) */}
+      <OnboardingBanner />
+
       {/* Header with time range selector */}
       <div
         style={{
