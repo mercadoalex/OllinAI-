@@ -17,7 +17,7 @@
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 /** Supported CI/CD integration types */
-export type IntegrationType = "github_actions" | "gitlab_ci" | "custom";
+export type IntegrationType = "github_actions" | "gitlab_ci" | "jenkins" | "circleci" | "harness" | "azure_devops" | "argocd" | "custom";
 
 /** Context needed to generate a code snippet */
 export interface SnippetContext {
@@ -59,12 +59,20 @@ export function generateSnippet(context: SnippetContext): GeneratedSnippet {
       return generateGitHubActionsSnippet(context);
     case "gitlab_ci":
       return generateGitLabCISnippet(context);
+    case "jenkins":
+      return generateJenkinsSnippet(context);
+    case "circleci":
+      return generateCircleCISnippet(context);
+    case "harness":
+      return generateHarnessSnippet(context);
+    case "azure_devops":
+      return generateAzureDevOpsSnippet(context);
+    case "argocd":
+      return generateArgoCDSnippet(context);
     case "custom":
       return generateCustomSnippet(context);
     default:
-      throw new Error(
-        `Unsupported integration type: ${context.integrationType}`
-      );
+      return generateCustomSnippet(context);
   }
 }
 
@@ -207,5 +215,173 @@ curl -X POST "$WEBHOOK_URL" \\
     content,
     filename: "ollinai-deploy.sh",
     instructions: `Set the ${context.secretKeyVarName} environment variable to your integration secret key, update the payload fields with your actual deployment data (commitShas, author, services, environment, deploymentTimestamp), then run the script.`,
+  };
+}
+
+
+// ─── Additional CI/CD Snippet Generators ───────────────────────────────────────
+
+function generateJenkinsSnippet(context: SnippetContext): GeneratedSnippet {
+  const content = `// Add this stage to your Jenkinsfile after your deploy stage
+
+stage('Notify OllinAI') {
+    steps {
+        withCredentials([string(credentialsId: '${context.secretKeyVarName.toLowerCase()}', variable: '${context.secretKeyVarName}')]) {
+            script {
+                def payload = '{"commitShas":["' + env.GIT_COMMIT + '"],"author":"' + (env.BUILD_USER_EMAIL ?: 'jenkins') + '","services":["your-service-name"],"environment":"production","deploymentTimestamp":"' + new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC')) + '"}'
+                def signature = sh(script: "echo -n '" + payload + "' | openssl dgst -sha256 -hmac \\"\${${context.secretKeyVarName}}\\" -binary | xxd -p -c 256", returnStdout: true).trim()
+                httpRequest(
+                    url: '${context.webhookUrl}',
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    customHeaders: [[name: 'X-OllinAI-Signature', value: signature], [name: 'X-OllinAI-Integration', value: '${context.integrationKey}']],
+                    requestBody: payload
+                )
+            }
+        }
+    }
+}`;
+
+  return {
+    language: "groovy",
+    content,
+    filename: "Jenkinsfile",
+    instructions: `Add your secret key as a Jenkins credential (Secret text) named "${context.secretKeyVarName.toLowerCase()}", then add this stage to your Jenkinsfile after your deployment stage.`,
+  };
+}
+
+function generateCircleCISnippet(context: SnippetContext): GeneratedSnippet {
+  const content = `# Add this job to your .circleci/config.yml workflow
+
+jobs:
+  notify-ollinai:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: Notify OllinAI of deployment
+          command: |
+            PAYLOAD='{"commitShas":["'\${CIRCLE_SHA1}'"],"author":"'\${CIRCLE_USERNAME}'","services":["your-service-name"],"environment":"production","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+            SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$${context.secretKeyVarName}" -binary | xxd -p -c 256)
+            curl -s -X POST "${context.webhookUrl}" \\
+              -H "Content-Type: application/json" \\
+              -H "X-OllinAI-Signature: $SIGNATURE" \\
+              -H "X-OllinAI-Integration: ${context.integrationKey}" \\
+              -d "$PAYLOAD"
+
+workflows:
+  deploy-and-notify:
+    jobs:
+      - deploy  # Your existing deploy job
+      - notify-ollinai:
+          requires:
+            - deploy`;
+
+  return {
+    language: "yaml",
+    content,
+    filename: ".circleci/config.yml",
+    instructions: `Add ${context.secretKeyVarName} as a CircleCI environment variable (Project Settings → Environment Variables), then add the notify-ollinai job to your workflow.`,
+  };
+}
+
+function generateHarnessSnippet(context: SnippetContext): GeneratedSnippet {
+  const content = `# Harness CD — Add as a Shell Script step after deployment
+
+# Step Type: ShellScript
+# Script:
+
+PAYLOAD='{"commitShas":["<+codebase.commitSha>"],"author":"<+pipeline.triggeredBy.email>","services":["<+service.name>"],"environment":"<+env.name>","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "<+secrets.getValue('${context.secretKeyVarName.toLowerCase()}')>" -binary | xxd -p -c 256)
+curl -s -X POST "${context.webhookUrl}" \\
+  -H "Content-Type: application/json" \\
+  -H "X-OllinAI-Signature: $SIGNATURE" \\
+  -H "X-OllinAI-Integration: ${context.integrationKey}" \\
+  -d "$PAYLOAD"`;
+
+  return {
+    language: "bash",
+    content,
+    filename: "harness-notify-step.sh",
+    instructions: `Add your secret key as a Harness Secret named "${context.secretKeyVarName.toLowerCase()}", then add a Shell Script step with this code after your deployment stage.`,
+  };
+}
+
+function generateAzureDevOpsSnippet(context: SnippetContext): GeneratedSnippet {
+  const content = `# Add this task to your azure-pipelines.yml after deployment
+
+- task: Bash@3
+  displayName: 'Notify OllinAI'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  inputs:
+    targetType: 'inline'
+    script: |
+      PAYLOAD='{"commitShas":["$(Build.SourceVersion)"],"author":"$(Build.RequestedForEmail)","services":["your-service-name"],"environment":"production","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+      SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$(${context.secretKeyVarName})" -binary | xxd -p -c 256)
+      curl -s -X POST "${context.webhookUrl}" \\
+        -H "Content-Type: application/json" \\
+        -H "X-OllinAI-Signature: $SIGNATURE" \\
+        -H "X-OllinAI-Integration: ${context.integrationKey}" \\
+        -d "$PAYLOAD"
+  env:
+    ${context.secretKeyVarName}: $(${context.secretKeyVarName})`;
+
+  return {
+    language: "yaml",
+    content,
+    filename: "azure-pipelines.yml",
+    instructions: `Add ${context.secretKeyVarName} as a secret Pipeline Variable (Pipelines → Edit → Variables), then add this task after your deploy step.`,
+  };
+}
+
+function generateArgoCDSnippet(context: SnippetContext): GeneratedSnippet {
+  const content = `# ArgoCD PostSync Hook — Add to your app manifests
+# First create the secret:
+# kubectl create secret generic ollinai-credentials \\
+#   --from-literal=secret-key=YOUR_SECRET_KEY \\
+#   --from-literal=integration-key=${context.integrationKey}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ollinai-notify
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: notify
+          image: curlimages/curl:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              PAYLOAD='{"commitShas":["unknown"],"author":"argocd","services":["your-service-name"],"environment":"production","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+              SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET_KEY" -binary | xxd -p -c 256)
+              curl -s -X POST "${context.webhookUrl}" \\
+                -H "Content-Type: application/json" \\
+                -H "X-OllinAI-Signature: $SIGNATURE" \\
+                -H "X-OllinAI-Integration: $INTEGRATION_KEY" \\
+                -d "$PAYLOAD"
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ollinai-credentials
+                  key: secret-key
+            - name: INTEGRATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ollinai-credentials
+                  key: integration-key
+      restartPolicy: Never
+  backoffLimit: 1`;
+
+  return {
+    language: "yaml",
+    content,
+    filename: "ollinai-postsync-hook.yaml",
+    instructions: `Create a Kubernetes secret with your OllinAI credentials, then add this Job manifest to your application's manifests directory. ArgoCD will run it after each successful sync.`,
   };
 }

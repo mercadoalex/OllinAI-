@@ -1,0 +1,38 @@
+// OllinAI Deployment Event — Jenkins Pipeline Step
+// Add this stage to your Jenkinsfile after your deploy stage
+//
+// Prerequisites:
+// 1. Add OLLINAI_SECRET_KEY as a Jenkins credential (Secret text)
+// 2. Replace YOUR_TENANT_ID and YOUR_INTEGRATION_ID with your values
+
+stage('Notify OllinAI') {
+    steps {
+        withCredentials([string(credentialsId: 'ollinai-secret-key', variable: 'OLLINAI_SECRET_KEY')]) {
+            script {
+                def payload = """{
+                    "commitShas": ["${env.GIT_COMMIT}"],
+                    "author": "${env.BUILD_USER_EMAIL ?: 'jenkins'}",
+                    "services": ["your-service-name"],
+                    "environment": "${env.DEPLOY_ENV ?: 'production'}",
+                    "deploymentTimestamp": "${new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))}"
+                }"""
+
+                def signature = sh(
+                    script: "echo -n '${payload}' | openssl dgst -sha256 -hmac \"\${OLLINAI_SECRET_KEY}\" -binary | xxd -p -c 256",
+                    returnStdout: true
+                ).trim()
+
+                httpRequest(
+                    url: 'https://ollin-ai.vercel.app/api/webhooks/deployments',
+                    httpMode: 'POST',
+                    contentType: 'APPLICATION_JSON',
+                    customHeaders: [
+                        [name: 'X-OllinAI-Signature', value: signature],
+                        [name: 'X-OllinAI-Integration', value: 'YOUR_TENANT_ID:YOUR_INTEGRATION_ID']
+                    ],
+                    requestBody: payload
+                )
+            }
+        }
+    }
+}

@@ -1,0 +1,60 @@
+# OllinAI Deployment Event — ArgoCD PostSync Hook
+# Add this as a PostSync resource hook in your ArgoCD Application
+#
+# Prerequisites:
+# 1. Create a Kubernetes Secret with your OllinAI credentials:
+#    kubectl create secret generic ollinai-credentials \
+#      --from-literal=secret-key=YOUR_SECRET_KEY \
+#      --from-literal=tenant-id=YOUR_TENANT_ID \
+#      --from-literal=integration-id=YOUR_INTEGRATION_ID
+#
+# 2. Add this Job manifest to your app's manifests directory
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ollinai-notify
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: notify
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              PAYLOAD="{\"commitShas\":[\"${GIT_COMMIT}\"],\"author\":\"argocd\",\"services\":[\"${APP_NAME}\"],\"environment\":\"${ENVIRONMENT}\",\"deploymentTimestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+              SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$OLLINAI_SECRET_KEY" -binary | xxd -p -c 256)
+              curl -s -X POST "https://ollin-ai.vercel.app/api/webhooks/deployments" \
+                -H "Content-Type: application/json" \
+                -H "X-OllinAI-Signature: $SIGNATURE" \
+                -H "X-OllinAI-Integration: ${OLLINAI_TENANT_ID}:${OLLINAI_INTEGRATION_ID}" \
+                -d "$PAYLOAD"
+          env:
+            - name: OLLINAI_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ollinai-credentials
+                  key: secret-key
+            - name: OLLINAI_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ollinai-credentials
+                  key: tenant-id
+            - name: OLLINAI_INTEGRATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ollinai-credentials
+                  key: integration-id
+            - name: APP_NAME
+              value: "your-service-name"  # Replace with your app name
+            - name: ENVIRONMENT
+              value: "production"
+            - name: GIT_COMMIT
+              value: "$(argocd app get APP_NAME -o json | jq -r .status.sync.revision)"
+      restartPolicy: Never
+  backoffLimit: 1

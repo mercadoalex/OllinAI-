@@ -1,0 +1,42 @@
+# OllinAI Deployment Event — CircleCI
+# Add this job to your .circleci/config.yml after your deploy job
+#
+# Prerequisites:
+# 1. Add OLLINAI_SECRET_KEY as a CircleCI environment variable (Project Settings → Environment Variables)
+# 2. Add OLLINAI_TENANT_ID and OLLINAI_INTEGRATION_ID as environment variables
+# 3. Add this job to your workflow after deployment
+
+version: 2.1
+
+jobs:
+  notify-ollinai:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: Notify OllinAI of deployment
+          command: |
+            PAYLOAD=$(cat \<<EOF
+            {
+              "commitShas": ["${CIRCLE_SHA1}"],
+              "author": "${CIRCLE_USERNAME}",
+              "services": ["your-service-name"],
+              "environment": "production",
+              "deploymentTimestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }
+            EOF
+            )
+            SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$OLLINAI_SECRET_KEY" -binary | xxd -p -c 256)
+            curl -s -X POST "https://ollin-ai.vercel.app/api/webhooks/deployments" \
+              -H "Content-Type: application/json" \
+              -H "X-OllinAI-Signature: $SIGNATURE" \
+              -H "X-OllinAI-Integration: ${OLLINAI_TENANT_ID}:${OLLINAI_INTEGRATION_ID}" \
+              -d "$PAYLOAD"
+
+workflows:
+  deploy-and-notify:
+    jobs:
+      - deploy  # Your existing deploy job
+      - notify-ollinai:
+          requires:
+            - deploy

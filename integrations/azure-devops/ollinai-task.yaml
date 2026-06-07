@@ -1,0 +1,32 @@
+# OllinAI Deployment Event — Azure DevOps Pipelines
+# Add this task to your azure-pipelines.yml after your deployment stage
+#
+# Prerequisites:
+# 1. Add OLLINAI_SECRET_KEY as a Pipeline Variable (secret)
+# 2. Add OLLINAI_TENANT_ID and OLLINAI_INTEGRATION_ID as variables
+# 3. Add this task after your deploy step
+
+# Add to your azure-pipelines.yml:
+
+stages:
+  - stage: Deploy
+    jobs:
+      - job: DeployApp
+        steps:
+          # ... your deployment steps ...
+
+          - task: Bash@3
+            displayName: 'Notify OllinAI'
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+            inputs:
+              targetType: 'inline'
+              script: |
+                PAYLOAD='{"commitShas":["$(Build.SourceVersion)"],"author":"$(Build.RequestedForEmail)","services":["your-service-name"],"environment":"production","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+                SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$(OLLINAI_SECRET_KEY)" -binary | xxd -p -c 256)
+                curl -s -X POST "https://ollin-ai.vercel.app/api/webhooks/deployments" \
+                  -H "Content-Type: application/json" \
+                  -H "X-OllinAI-Signature: $SIGNATURE" \
+                  -H "X-OllinAI-Integration: $(OLLINAI_TENANT_ID):$(OLLINAI_INTEGRATION_ID)" \
+                  -d "$PAYLOAD"
+            env:
+              OLLINAI_SECRET_KEY: $(OLLINAI_SECRET_KEY)
