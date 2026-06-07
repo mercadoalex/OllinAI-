@@ -156,14 +156,14 @@ describe("generateSnippet", () => {
   });
 
   describe("error handling", () => {
-    it("throws for unsupported integration type", () => {
+    it("falls back to custom snippet for unsupported integration type", () => {
       const context: SnippetContext = {
         ...baseContext,
         integrationType: "unsupported" as IntegrationType,
       };
-      expect(() => generateSnippet(context)).toThrow(
-        "Unsupported integration type: unsupported"
-      );
+      const result = generateSnippet(context);
+      expect(result.language).toBe("bash");
+      expect(result.content).toContain(context.webhookUrl);
     });
   });
 
