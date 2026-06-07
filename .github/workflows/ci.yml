@@ -28,9 +28,11 @@ jobs:
 
       - name: Notify OllinAI
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: ollinai/integrations/github-actions/ollinai-deploy-event@v1
-        with:
-          api-url: "https://ollin-ai.vercel.app"
-          secret-key: ${{ secrets.OLLINAI_SECRET_KEY }}
-          services: "ollinai-platform"
-          environment: "production"
+        run: |
+          PAYLOAD='{"commitShas":["${{ github.sha }}"],"author":"${{ github.actor }}","services":["ollinai-platform"],"environment":"production","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.OLLINAI_SECRET_KEY }}" -binary | xxd -p -c 256)
+          curl -s -X POST "https://ollin-ai.vercel.app/api/webhooks/deployments" \
+            -H "Content-Type: application/json" \
+            -H "X-OllinAI-Signature: $SIGNATURE" \
+            -H "X-OllinAI-Integration: ${{ secrets.OLLINAI_TENANT_ID }}:${{ secrets.OLLINAI_INTEGRATION_ID }}" \
+            -d "$PAYLOAD"
