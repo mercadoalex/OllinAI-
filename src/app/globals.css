@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
@@ -21,6 +23,21 @@
 }
 
 :root {
+  --background: oklch(0.99 0.004 250);
+  --foreground: oklch(0.2 0.02 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.02 250);
+  --muted: oklch(0.96 0.008 250);
+  --muted-foreground: oklch(0.5 0.02 250);
+  --primary: oklch(0.55 0.19 255);
+  --primary-foreground: oklch(0.99 0.005 250);
+  --accent: oklch(0.6 0.15 200);
+  --accent-foreground: oklch(0.99 0.005 250);
+  --border: oklch(0.9 0.01 250);
+  --ring: oklch(0.55 0.19 255);
+}
+
+.dark {
   --background: oklch(0.16 0.02 250);
   --foreground: oklch(0.97 0.005 250);
   --card: oklch(0.2 0.02 250);
