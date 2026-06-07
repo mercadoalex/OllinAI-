@@ -23,10 +23,29 @@ export default function EventPage() {
 
   function getIntegrationId(): string | null {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("onboarding_integrationId");
+      const stored = localStorage.getItem("onboarding_integrationId");
+      if (stored) return stored;
     }
     return null;
   }
+
+  // Fetch integrationId from API if not in localStorage
+  useEffect(() => {
+    async function ensureIntegrationId() {
+      if (getIntegrationId()) return;
+      try {
+        const res = await fetch("/api/integrations", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          const integrations = data.data || data.integrations || [];
+          if (integrations.length > 0) {
+            localStorage.setItem("onboarding_integrationId", integrations[0].integrationId);
+          }
+        }
+      } catch {}
+    }
+    ensureIntegrationId();
+  }, []);
 
   async function markStepComplete() {
     setCompleting(true);

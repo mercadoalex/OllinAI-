@@ -27,11 +27,35 @@ export default function PipelinePage() {
     return null;
   }
 
+  async function fetchIntegrationIdFromAPI(): Promise<string | null> {
+    try {
+      const res = await fetch("/api/integrations", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        const integrations = data.data || data.integrations || [];
+        if (integrations.length > 0) {
+          const id = integrations[0].integrationId;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("onboarding_integrationId", id);
+          }
+          return id;
+        }
+      }
+    } catch {}
+    return null;
+  }
+
   async function fetchSnippet() {
     setLoading(true);
     setError("");
 
-    const integrationId = getIntegrationId();
+    let integrationId = getIntegrationId();
+    
+    // Fallback: fetch from API if not in localStorage
+    if (!integrationId) {
+      integrationId = await fetchIntegrationIdFromAPI();
+    }
+    
     if (!integrationId) {
       setError("Integration ID not found. Please go back and create an integration.");
       setLoading(false);
