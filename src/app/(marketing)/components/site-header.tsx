@@ -13,6 +13,15 @@ export function SiteHeader() {
             width={120}
             height={32}
             priority
+            className="dark:hidden"
+          />
+          <Image
+            src="/ollin_logo_black.png"
+            alt="OllinAI"
+            width={120}
+            height={32}
+            priority
+            className="hidden dark:block"
           />
         </Link>
 
