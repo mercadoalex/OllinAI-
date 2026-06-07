@@ -1,0 +1,53 @@
+import Link from "next/link";
+import { Activity } from "lucide-react";
+
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <Activity className="h-5 w-5 text-primary-foreground" />
+          </span>
+          <span className="text-lg font-semibold tracking-tight">OllinAI</span>
+        </Link>
+
+        <nav className="hidden items-center gap-8 md:flex">
+          <a
+            href="#features"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Features
+          </a>
+          <a
+            href="#how-it-works"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            How it works
+          </a>
+          <a
+            href="#pricing"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Pricing
+          </a>
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href="/sign-in"
+            className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/sign-up"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Start Free Trial
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}

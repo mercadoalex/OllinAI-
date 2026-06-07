@@ -50,6 +50,11 @@ const onboardingExemptPaths = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Allow the public marketing landing page (exact root match)
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
   // Allow public paths
   if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
