@@ -55,6 +55,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow root landing page
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
   // Allow static assets
   if (pathname.includes(".") && !pathname.startsWith("/api")) {
     return NextResponse.next();
