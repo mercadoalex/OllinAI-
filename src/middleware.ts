@@ -79,35 +79,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // ─── Onboarding routing logic ──────────────────────────────────────────────
-
-  try {
-    const onboardingComplete = token.onboardingComplete as boolean | undefined;
-
-    // If onboarding is NOT complete and user is trying to access dashboard
-    if (
-      (onboardingComplete === false || onboardingComplete === undefined) &&
-      pathname.startsWith("/dashboard")
-    ) {
-      // Redirect to the first onboarding step (integration is step 1)
-      const redirectUrl = new URL(
-        STEP_TO_URL["integration_created"],
-        request.url
-      );
-      return NextResponse.redirect(redirectUrl);
-    }
-
-    // If onboarding IS complete and user is trying to access onboarding pages
-    if (onboardingComplete === true && pathname.startsWith("/onboarding")) {
-      const redirectUrl = new URL("/dashboard", request.url);
-      return NextResponse.redirect(redirectUrl);
-    }
-  } catch (error) {
-    // Fail-open: if anything goes wrong during onboarding check, allow access
-    console.warn(
-      "[middleware] Onboarding routing check failed, allowing access:",
-      error instanceof Error ? error.message : String(error)
-    );
-  }
+  // Onboarding navigation is handled client-side by the onboarding pages themselves.
+  // The dashboard shows a resume banner if onboarding was skipped.
+  // No server-side blocking — fail-open approach.
 
   // Add tenant ID to request headers for downstream server components
   const response = NextResponse.next();
