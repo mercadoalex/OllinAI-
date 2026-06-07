@@ -25,3 +25,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Notify OllinAI
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: ollinai/integrations/github-actions/ollinai-deploy-event@v1
+        with:
+          api-url: "https://ollin-ai.vercel.app"
+          secret-key: ${{ secrets.OLLINAI_SECRET_KEY }}
+          services: "ollinai-platform"
+          environment: "production"
