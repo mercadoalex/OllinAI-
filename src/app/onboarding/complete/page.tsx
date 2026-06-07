@@ -1,20 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function CompletePage() {
-  const router = useRouter();
+  const { update: updateSession } = useSession();
   const [tenantName, setTenantName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Auto-redirect after 5 seconds
-    const timeout = setTimeout(() => {
-      router.push("/dashboard");
-    }, 5000);
-
-    return () => clearTimeout(timeout);
-  }, [router]);
+    // Refresh the session to update onboardingComplete claim in JWT
+    async function refreshAndRedirect() {
+      try {
+        await updateSession(); // Triggers JWT callback with trigger="update"
+      } catch {}
+      // Use full page navigation so middleware gets the fresh token
+      const timeout = setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+    refreshAndRedirect();
+  }, [updateSession]);
 
   useEffect(() => {
     // Try to fetch tenant name for personalization
@@ -37,7 +43,7 @@ export default function CompletePage() {
   }, []);
 
   function handleGoToDashboard() {
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
   }
 
   return (
