@@ -103,7 +103,7 @@ export function DashboardClient({
       const [currentRes, prevRes, eventsRes] = await Promise.all([
         fetch(`/api/metrics/dora?${params}`),
         fetch(`/api/metrics/dora?${prevParams}`),
-        fetch(`/api/v1/deployments?${params}&pageSize=100`),
+        fetch(`/api/metrics/dora?${params}&includeRisk=true`).catch(() => null),
       ]);
 
       if (currentRes.ok) {
@@ -116,7 +116,7 @@ export function DashboardClient({
         setPreviousMetrics(data);
       }
 
-      if (eventsRes.ok) {
+      if (eventsRes && eventsRes.ok) {
         const data: DeploymentEventsResponse = await eventsRes.json();
         const dist = computeRiskDistribution(data.data);
         setRiskDistribution(dist);
