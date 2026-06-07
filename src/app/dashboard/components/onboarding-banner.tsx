@@ -67,15 +67,13 @@ export function OnboardingBanner() {
         credentials: "include",
       });
       if (res.ok) {
-        const state: OnboardingState = await res.json();
-        // Find first incomplete step
-        const firstIncomplete = STEP_ORDER.find(
-          (step) => !state.steps[step]?.completed
-        );
-        const path = firstIncomplete
-          ? STEP_PATHS[firstIncomplete]
+        const data = await res.json();
+        // Use nextStep from API response, or default to integration
+        const stepPath = data.nextStep
+          ? STEP_PATHS[data.nextStep] || "/onboarding/integration"
           : "/onboarding/integration";
-        router.push(path);
+        // Force full page navigation to bypass middleware cache
+        window.location.href = stepPath;
       }
     } catch {
       // Allow retry on next interaction

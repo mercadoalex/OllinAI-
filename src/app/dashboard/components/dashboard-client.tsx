@@ -99,11 +99,10 @@ export function DashboardClient({
         to: from.toISOString(),
       });
 
-      // Fetch current period, previous period metrics, and risk distribution in parallel
-      const [currentRes, prevRes, eventsRes] = await Promise.all([
+      // Fetch current period and previous period metrics in parallel
+      const [currentRes, prevRes] = await Promise.all([
         fetch(`/api/metrics/dora?${params}`),
         fetch(`/api/metrics/dora?${prevParams}`),
-        fetch(`/api/metrics/dora?${params}&includeRisk=true`).catch(() => null),
       ]);
 
       if (currentRes.ok) {
@@ -114,15 +113,6 @@ export function DashboardClient({
       if (prevRes.ok) {
         const data: DORAMetricsResponse = await prevRes.json();
         setPreviousMetrics(data);
-      }
-
-      if (eventsRes && eventsRes.ok) {
-        const data: DeploymentEventsResponse = await eventsRes.json();
-        const dist = computeRiskDistribution(data.data);
-        setRiskDistribution(dist);
-        setTotalEvents(data.pagination?.totalCount ?? data.data.length);
-      } else {
-        // Fallback: if v1 API not available, keep initial data
       }
 
       setError(null);
