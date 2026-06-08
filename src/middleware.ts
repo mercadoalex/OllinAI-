@@ -30,6 +30,7 @@ const publicPaths = [
   "/sign-in",
   "/sign-up",
   "/forgot-password",
+  "/docs",
   "/api/auth",
   "/api/health",
   "/api/webhooks",
