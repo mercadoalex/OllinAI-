@@ -141,7 +141,7 @@ async function fetchRiskDistribution(
         IndexName: "GSI2-TeamView",
         KeyConditionExpression: "GSI2PK = :pk AND GSI2SK BETWEEN :start AND :end",
         ExpressionAttributeValues: {
-          ":pk": `TENANT#${tenantId}#TEAM#ALL`,
+          ":pk": `TENANT#${tenantId}#TEAM#UNASSIGNED`,
           ":start": `DEPLOY#${periodStart}`,
           ":end": `DEPLOY#${periodEnd}`,
         },
