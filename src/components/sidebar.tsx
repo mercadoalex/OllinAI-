@@ -13,6 +13,7 @@ const navigation = [
   { name: "Teams", href: "/dashboard/teams", icon: "👥" },
   { name: "Predictions", href: "/dashboard/predictions", icon: "📈" },
   { name: "Settings", href: "/dashboard/settings", icon: "⚙️" },
+  { name: "Docs", href: "/docs", icon: "📖" },
 ]
 
 export function Sidebar() {

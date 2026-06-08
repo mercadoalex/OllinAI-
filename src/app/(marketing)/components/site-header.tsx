@@ -44,6 +44,12 @@ export function SiteHeader() {
           >
             Pricing
           </a>
+          <Link
+            href="/docs"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Docs
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
