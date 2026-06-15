@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  # ─── Code Quality ─────────────────────────────────────────────────────────
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,14 +21,38 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
+      - name: Lint
+        run: npm run lint
+
+      - name: Security audit
+        run: npm audit --audit-level=high || true
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
 
-      - name: Notify OllinAI
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  # ─── Secret Scanning ──────────────────────────────────────────────────────
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── Notify OllinAI ───────────────────────────────────────────────────────
+  notify:
+    runs-on: ubuntu-latest
+    needs: [quality]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Notify OllinAI of deployment
         run: |
           PAYLOAD='{"commitShas":["${{ github.sha }}"],"author":"${{ github.actor }}","services":["ollinai-platform"],"environment":"production","deploymentTimestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
           SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "${{ secrets.OLLINAI_SECRET_KEY }}" -binary | xxd -p -c 256)

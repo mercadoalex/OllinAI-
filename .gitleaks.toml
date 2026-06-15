@@ -1,0 +1,8 @@
+# Gitleaks configuration — reduce false positives
+[allowlist]
+  paths = [
+    '''\.env\.example''',
+    '''docs/''',
+    '''integrations/''',
+    '''\.kiro/''',
+  ]
