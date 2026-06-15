@@ -84,11 +84,15 @@ export async function middleware(request: NextRequest) {
   // The dashboard shows a resume banner if onboarding was skipped.
   // No server-side blocking — fail-open approach.
 
-  // Add tenant ID to request headers for downstream server components
+  // Generate request ID for tracing
+  const requestId = crypto.randomUUID().replace(/-/g, "").substring(0, 16);
+
+  // Add tenant ID and request ID to headers for downstream server components
   const response = NextResponse.next();
   response.headers.set("x-tenant-id", (token.tenantId as string) || "");
   response.headers.set("x-user-id", (token.userId as string) || "");
   response.headers.set("x-user-role", (token.role as string) || "");
+  response.headers.set("x-request-id", `req_${requestId}`);
 
   return response;
 }

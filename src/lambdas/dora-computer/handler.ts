@@ -308,10 +308,10 @@ export function computeMTTR(incidents: IncidentItem[]): {
   unresolvedCount: number;
 } {
   const resolvedIncidents = incidents.filter(
-    (inc) => inc.resolutionTimestamp != null
+    (inc) => inc.resolutionTimestamp !== null && inc.resolutionTimestamp !== undefined
   );
   const unresolvedCount = incidents.filter(
-    (inc) => inc.resolutionTimestamp == null
+    (inc) => inc.resolutionTimestamp === null || inc.resolutionTimestamp === undefined
   ).length;
 
   if (resolvedIncidents.length < MIN_DATA_POINTS) {

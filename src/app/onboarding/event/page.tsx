@@ -142,7 +142,6 @@ export default function EventPage() {
     return () => {
       stopPolling();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleRetryPolling() {
