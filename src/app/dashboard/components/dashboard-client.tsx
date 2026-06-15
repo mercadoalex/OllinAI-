@@ -6,7 +6,7 @@
  * Handles client-side polling (30-second interval) for near-real-time updates
  * and manages the time range selector state.
  *
- * Requirements: 9.5 (30-second update), 9.7 (time range selector)
+ * Requirements: 8.1, 8.5, 8.7, 9.5 (30-second update), 9.7 (time range selector)
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -23,6 +23,14 @@ import {
 } from "./time-range-selector";
 import { InsufficientData } from "./insufficient-data";
 import { OnboardingBanner } from "./onboarding-banner";
+import { MetricSection } from "./metric-section";
+import { SectionNavBar, NavSection } from "./section-nav-bar";
+import { RiskMetricsSection } from "./sections/risk-metrics-section";
+import { CorrelationMetricsSection } from "./sections/correlation-metrics-section";
+import { TeamPerformanceSection } from "./sections/team-performance-section";
+import { ServiceHealthSection } from "./sections/service-health-section";
+import { PredictionsSection } from "./sections/predictions-section";
+import { BusinessImpactSection } from "./sections/business-impact-section";
 
 /** Shape of DORA metrics response from the API */
 interface DORAMetricsResponse {
@@ -57,6 +65,7 @@ export interface DashboardInitialData {
 export interface DashboardClientProps {
   initialData: DashboardInitialData;
   defaultTimeRange?: TimeRangeDays;
+  currentTier?: string;
 }
 
 /** Polling interval in milliseconds (30 seconds) */
@@ -68,6 +77,7 @@ const MINIMUM_EVENTS = 3;
 export function DashboardClient({
   initialData,
   defaultTimeRange = 30,
+  currentTier = "enterprise",
 }: DashboardClientProps) {
   const [timeRange, setTimeRange] = useState<TimeRangeDays>(defaultTimeRange);
   const [currentMetrics, setCurrentMetrics] = useState<DORAMetricsResponse | null>(
@@ -150,6 +160,19 @@ export function DashboardClient({
   );
 
   const hasInsufficientData = totalEvents < MINIMUM_EVENTS;
+
+  // Compute time range start for metric section API calls
+  const timeRangeFrom = new Date(Date.now() - timeRange * 24 * 60 * 60 * 1000);
+
+  // Navigation sections with tier availability
+  const navSections: NavSection[] = [
+    { id: "risk-metrics", label: "Risk Metrics", available: hasTier(currentTier, "pro") },
+    { id: "correlation-metrics", label: "Correlation Metrics", available: hasTier(currentTier, "pro") },
+    { id: "team-performance", label: "Team Performance", available: hasTier(currentTier, "pro") },
+    { id: "service-health", label: "Service Health", available: hasTier(currentTier, "pro") },
+    { id: "predictions", label: "Predictions", available: hasTier(currentTier, "enterprise") },
+    { id: "business-impact", label: "Business Impact", available: hasTier(currentTier, "enterprise") },
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -259,11 +282,87 @@ export function DashboardClient({
           </section>
         </>
       )}
+
+      {/* Advanced Metric Sections — progressive client-side loading */}
+      <SectionNavBar sections={navSections} activeSection={navSections[0]?.id ?? ""} />
+
+      <MetricSection
+        id="risk-metrics"
+        title="Risk Metrics"
+        apiEndpoint={`/api/metrics/risk?from=${timeRangeFrom.toISOString()}&to=${new Date().toISOString()}`}
+        tierRequired="pro"
+        currentTier={currentTier}
+      >
+        {(data) => <RiskMetricsSection data={data as any} />}
+      </MetricSection>
+
+      <MetricSection
+        id="correlation-metrics"
+        title="Correlation Metrics"
+        apiEndpoint={`/api/metrics/correlation?from=${timeRangeFrom.toISOString()}&to=${new Date().toISOString()}`}
+        tierRequired="pro"
+        currentTier={currentTier}
+      >
+        {(data) => <CorrelationMetricsSection data={data as any} />}
+      </MetricSection>
+
+      <MetricSection
+        id="team-performance"
+        title="Team Performance"
+        apiEndpoint={`/api/metrics/team-performance?from=${timeRangeFrom.toISOString()}&to=${new Date().toISOString()}`}
+        tierRequired="pro"
+        currentTier={currentTier}
+      >
+        {(data) => <TeamPerformanceSection data={data as any} />}
+      </MetricSection>
+
+      <MetricSection
+        id="service-health"
+        title="Service Health"
+        apiEndpoint={`/api/metrics/service-health?from=${timeRangeFrom.toISOString()}&to=${new Date().toISOString()}`}
+        tierRequired="pro"
+        currentTier={currentTier}
+      >
+        {(data) => <ServiceHealthSection data={data as any} />}
+      </MetricSection>
+
+      <MetricSection
+        id="predictions"
+        title="Predictions & Prevention"
+        apiEndpoint={`/api/metrics/predictions?from=${timeRangeFrom.toISOString()}&to=${new Date().toISOString()}`}
+        tierRequired="enterprise"
+        currentTier={currentTier}
+      >
+        {(data) => <PredictionsSection data={data as any} />}
+      </MetricSection>
+
+      <MetricSection
+        id="business-impact"
+        title="Business Impact"
+        apiEndpoint={`/api/metrics/business-impact?from=${timeRangeFrom.toISOString()}&to=${new Date().toISOString()}`}
+        tierRequired="enterprise"
+        currentTier={currentTier}
+      >
+        {(data) => <BusinessImpactSection data={data as any} />}
+      </MetricSection>
     </div>
   );
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Tier hierarchy for section visibility */
+const TIER_HIERARCHY: Record<string, number> = {
+  starter: 0,
+  pro: 1,
+  enterprise: 2,
+};
+
+function hasTier(currentTier: string, requiredTier: string): boolean {
+  const current = TIER_HIERARCHY[currentTier.toLowerCase()] ?? 0;
+  const required = TIER_HIERARCHY[requiredTier.toLowerCase()] ?? 0;
+  return current >= required;
+}
 
 function buildMetricsDisplay(
   current: DORAMetricsResponse | null,

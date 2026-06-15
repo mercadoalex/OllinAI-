@@ -33,7 +33,7 @@ export default async function DashboardPage() {
 
   return (
     <main style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-      <DashboardClient initialData={initialData} defaultTimeRange={DEFAULT_DAYS} />
+      <DashboardClient initialData={initialData} defaultTimeRange={DEFAULT_DAYS} currentTier="enterprise" />
     </main>
   );
 }

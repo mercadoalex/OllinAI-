@@ -185,15 +185,15 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
 - [x] 8. Checkpoint - Ensure API routes work with computation layer
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement dashboard UI components
-  - [~] 9.1 Create MetricSection wrapper component with progressive loading
+- [x] 9. Implement dashboard UI components
+  - [x] 9.1 Create MetricSection wrapper component with progressive loading
     - Create `src/app/dashboard/components/metric-section.tsx`
     - Implement loading skeleton, error boundary, and data fetching with SWR or fetch + useEffect
     - Accept `apiEndpoint`, `tierRequired`, `currentTier`, `timeRange`, `filters` props
     - Display locked state when tier is insufficient with upgrade CTA
     - _Requirements: 8.5, 9.4, 9.5_
 
-  - [~] 9.2 Create section navigation bar component
+  - [x] 9.2 Create section navigation bar component
     - Create `src/app/dashboard/components/section-nav-bar.tsx`
     - Render horizontal nav with section labels; highlight active section
     - On click, smooth-scroll to the target section
@@ -201,7 +201,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - Show only sections available for the current tier
     - _Requirements: 8.1, 8.2, 8.3, 8.6_
 
-  - [~] 9.3 Create individual metric section display components
+  - [x] 9.3 Create individual metric section display components
     - Create `src/app/dashboard/components/risk-metrics-section.tsx` — histogram, line chart placeholder, bar chart placeholder
     - Create `src/app/dashboard/components/correlation-metrics-section.tsx` — 3 metric cards with trends
     - Create `src/app/dashboard/components/team-performance-section.tsx` — bar charts with sort control
@@ -211,7 +211,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - Each section uses the MetricSection wrapper for fetching and tier gating
     - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1_
 
-  - [~] 9.4 Create LockedSection component for tier-restricted content
+  - [x] 9.4 Create LockedSection component for tier-restricted content
     - Create `src/app/dashboard/components/locked-section.tsx`
     - Display section name, required tier badge, and upgrade call-to-action button
     - _Requirements: 9.4_
@@ -223,15 +223,15 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - Test responsive layout behavior
     - _Requirements: 8.2, 8.6, 9.4_
 
-- [ ] 10. Wire everything together in the dashboard page
-  - [~] 10.1 Update DashboardClient to integrate new metric sections
+- [x] 10. Wire everything together in the dashboard page
+  - [x] 10.1 Update DashboardClient to integrate new metric sections
     - Modify `src/app/dashboard/components/dashboard-client.tsx` to include the section nav bar and all new metric sections
     - Pass current tier, time range, and filters to each section
     - Implement progressive loading: DORA + Risk SSR, rest client-side
     - Maintain 30-second polling for visible sections
     - _Requirements: 8.1, 8.5, 8.7, 1.6_
 
-  - [~] 10.2 Update dashboard page server component for tier and risk SSR
+  - [x] 10.2 Update dashboard page server component for tier and risk SSR
     - Modify `src/app/dashboard/page.tsx` to fetch tenant tier on server
     - Pass tier info to DashboardClient for immediate section visibility decisions
     - Ensure Risk Metrics section data is fetched server-side alongside DORA for ISR
@@ -244,7 +244,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - Test 30-second polling updates visible sections
     - _Requirements: 8.4, 8.5, 9.1, 9.2, 9.3_
 
-- [~] 11. Final checkpoint - Ensure all tests pass
+- [x] 11. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
