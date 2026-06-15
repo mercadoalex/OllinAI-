@@ -144,7 +144,7 @@ for i in range(0, len(items), batch_size):
         '${table}': [{'PutRequest': {'Item': item}} for item in batch]
     }
     
-    payload = json.dumps({'RequestItems': request_items})
+    payload = json.dumps(request_items)
     
     result = subprocess.run(
         ['aws', 'dynamodb', 'batch-write-item', '--request-items', payload, '--region', '${REGION}'],
