@@ -96,8 +96,8 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 4.2, 4.3, 4.5, 4.6**
     - Test file: `src/lib/metrics/computers/__tests__/service-health.property.test.ts`
 
-- [ ] 5. Implement Predictions and Business Impact computers
-  - [~] 5.1 Implement Predictions computer
+- [x] 5. Implement Predictions and Business Impact computers
+  - [x] 5.1 Implement Predictions computer
     - Create `src/lib/metrics/computers/predictions.ts` with `computePredictions(context)` function
     - Compute: prediction accuracy (predicted matches actual), blocked count (gateDecision "blocked"), warned count (gateDecision "warned"), false positive rate (above threshold with no incident), early warning count (earlyWarning = true)
     - Handle ML inactive case (no events with predictionScore)
@@ -111,7 +111,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 5.2, 5.3, 5.4, 5.5**
     - Test file: `src/lib/metrics/computers/__tests__/predictions.property.test.ts`
 
-  - [~] 5.3 Implement Business Impact computer
+  - [x] 5.3 Implement Business Impact computer
     - Create `src/lib/metrics/computers/business-impact.ts` with `computeBusinessImpact(context)` function
     - Compute: estimated downtime avoided (blocked high/critical × avg MTTR), SLA compliance % (minutes without critical incident / total minutes × 100), incident trend indicator
     - Cap unresolved incidents at period end time for SLA calculation
@@ -124,7 +124,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 6.2, 6.3**
     - Test file: `src/lib/metrics/computers/__tests__/business-impact.property.test.ts`
 
-- [~] 6. Checkpoint - Ensure all computation layer tests pass
+- [x] 6. Checkpoint - Ensure all computation layer tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Implement API route handlers
