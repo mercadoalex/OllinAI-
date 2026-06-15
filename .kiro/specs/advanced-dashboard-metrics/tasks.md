@@ -39,8 +39,8 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - Create `src/lib/metrics/utils/time-grouping.ts` with `groupEventsByDay(events, from, to)` function that returns all days in range (including zero-count days)
     - _Requirements: 1.2, 1.3_
 
-- [ ] 2. Implement Risk and Correlation metric computers
-  - [~] 2.1 Implement Risk metrics computer
+- [x] 2. Implement Risk and Correlation metric computers
+  - [x] 2.1 Implement Risk metrics computer
     - Create `src/lib/metrics/computers/risk.ts` with `computeRiskMetrics(context)` function
     - Compute: risk distribution counts, high/critical daily trend (all days in range), per-service averages (top 10 sorted descending)
     - Query `ollinai-events` via GSI-2 TeamView and service PK patterns
@@ -53,7 +53,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 1.2, 1.3**
     - Test file: `src/lib/metrics/computers/__tests__/risk.property.test.ts`
 
-  - [~] 2.3 Implement Correlation metrics computer
+  - [x] 2.3 Implement Correlation metrics computer
     - Create `src/lib/metrics/computers/correlation.ts` with `computeCorrelationMetrics(context)` function
     - Compute: correlation rate (correlated / total × 100), average time-to-correlation, uncorrelated count
     - Query `ollinai-incidents` via GSI-1 TimeRange
@@ -66,7 +66,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 2.2, 2.3, 2.4**
     - Test file: `src/lib/metrics/computers/__tests__/correlation.property.test.ts`
 
-- [~] 3. Checkpoint - Ensure all tests pass
+- [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 4. Implement Team Performance and Service Health computers
