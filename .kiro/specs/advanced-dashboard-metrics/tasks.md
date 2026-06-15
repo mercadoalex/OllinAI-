@@ -69,8 +69,8 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
 - [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement Team Performance and Service Health computers
-  - [~] 4.1 Implement Team Performance computer
+- [x] 4. Implement Team Performance and Service Health computers
+  - [x] 4.1 Implement Team Performance computer
     - Create `src/lib/metrics/computers/team-performance.ts` with `computeTeamPerformance(context)` function
     - Compute: per-team CFR (events with correlatedIncident / total × 100), deployment frequency per team, risk profile per team (low/medium/high/critical counts)
     - Sort by CFR descending by default; support sortBy and sortOrder params
@@ -83,7 +83,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 3.2, 3.4, 3.5**
     - Test file: `src/lib/metrics/computers/__tests__/team-performance.property.test.ts`
 
-  - [~] 4.3 Implement Service Health computer
+  - [x] 4.3 Implement Service Health computer
     - Create `src/lib/metrics/computers/service-health.ts` with `computeServiceHealth(context)` function
     - Compute: services at risk (high/critical in last 7 days), service-level DORA metrics table, blast radius per incident (distinct services from correlated deployments)
     - Query across `ollinai-events`, `ollinai-incidents`, `ollinai-metrics`
