@@ -74,6 +74,19 @@ resource "aws_dynamodb_table" "events" {
   point_in_time_recovery {
     enabled = true
   }
+
+  # DynamoDB Streams — enables real-time processing and Global Tables replication
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  # Global Tables — multi-region replication for Enterprise data residency
+  # Enables active-active access from any configured region with <10ms latency
+  dynamic "replica" {
+    for_each = var.enable_global_tables ? var.global_table_regions : []
+    content {
+      region_name = replica.value
+    }
+  }
 }
 
 # ─── Incidents Table ─────────────────────────────────────────────────────────

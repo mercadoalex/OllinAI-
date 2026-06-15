@@ -161,14 +161,39 @@ export async function POST(request: NextRequest) {
     },
   };
 
+  // Use DynamoDB ACID Transaction to atomically:
+  // 1. Create the integration record
+  // 2. Write an audit log entry
+  // This ensures both succeed or neither does — no orphaned records.
+  const { TransactWriteCommand } = await import("@aws-sdk/lib-dynamodb");
+
   await client.send(
-    new PutCommand(
-      withTenantScope(tenantId, {
-        TableName: TableNames.CONFIG,
-        Item: integrationItem as unknown as Record<string, unknown>,
-        ConditionExpression: "attribute_not_exists(PK) AND attribute_not_exists(SK)",
-      })
-    )
+    new TransactWriteCommand({
+      TransactItems: [
+        {
+          Put: {
+            TableName: TableNames.CONFIG,
+            Item: integrationItem as unknown as Record<string, unknown>,
+            ConditionExpression: "attribute_not_exists(PK) AND attribute_not_exists(SK)",
+          },
+        },
+        {
+          Put: {
+            TableName: TableNames.AUDIT,
+            Item: {
+              PK: pk,
+              SK: `AUDIT#${now}#${randomUUID()}`,
+              actor: session.userId,
+              action: "integration.create",
+              targetResource: `INTEGRATION#${integrationId}`,
+              sourceIp: "vercel-serverless",
+              outcome: "success",
+              timestamp: now,
+            },
+          },
+        },
+      ],
+    })
   );
 
   // Return the secret key ONLY on creation (one-time display)

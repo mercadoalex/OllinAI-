@@ -36,30 +36,6 @@ OllinAI provides:
 
 ![OllinAI Architecture](./ollinai_architecture.png)
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         VERCEL EDGE                                       │
-│  Next.js Dashboard │ API Routes │ NextAuth.js │ Webhook Ingestion        │
-└─────────────────┬───────────────────────────────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────────────────────────────┐
-│                      AWS — EVENT-DRIVEN PIPELINE                          │
-│                                                                           │
-│  SQS Queues ──► Lambda: Correlator ──► EventBridge ──► Lambda: DORA      │
-│       │                                      │                            │
-│       └──► Lambda: Risk Scorer ──────────────┴──► Lambda: Recommendations │
-│       │                                                                   │
-│       └──► Lambda: Telemetry Processor ──► Lambda: ML Inference           │
-│                                                                           │
-│  DynamoDB (multi-table) │ DAX Cache │ SageMaker │ ECR (Rule Bundles)     │
-└─────────────────────────────────────────────────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────────────────────────────┐
-│                      eBPF AGENT (Rust)                                    │
-│  Process Ancestry │ Anomaly Detection │ Credential Exfiltration          │
-│  Build Attestation │ Canary Observation │ Rule Engine                    │
-└─────────────────────────────────────────────────────────────────────────┘
-```
 
 ## Tech Stack
 

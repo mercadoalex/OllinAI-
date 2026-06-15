@@ -86,3 +86,18 @@ variable "ecr_image_tag_mutability" {
   type        = string
   default     = "IMMUTABLE"
 }
+
+
+# ─── Global Tables (Multi-Region) ────────────────────────────────────────────
+
+variable "enable_global_tables" {
+  description = "Enable DynamoDB Global Tables for multi-region replication (Enterprise tier)"
+  type        = bool
+  default     = false
+}
+
+variable "global_table_regions" {
+  description = "Additional AWS regions for Global Tables replication"
+  type        = list(string)
+  default     = ["eu-west-1", "ap-southeast-1"]
+}
