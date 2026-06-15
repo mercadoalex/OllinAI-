@@ -127,8 +127,8 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
 - [x] 6. Checkpoint - Ensure all computation layer tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Implement API route handlers
-  - [~] 7.1 Create shared API validation and response utilities
+- [x] 7. Implement API route handlers
+  - [x] 7.1 Create shared API validation and response utilities
     - Create `src/app/api/metrics/shared.ts` with common request validation logic (time range parsing, 365-day max, from < to check)
     - Implement tenant ID extraction and common error response helpers
     - Define the feature-to-endpoint tier mapping constant
@@ -139,39 +139,39 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 7.5**
     - Test file: `src/app/api/metrics/__tests__/validation.property.test.ts`
 
-  - [~] 7.3 Implement GET /api/metrics/risk route
+  - [x] 7.3 Implement GET /api/metrics/risk route
     - Create `src/app/api/metrics/risk/route.ts` following the existing DORA route pattern
     - Apply `withAuthorization` + `withTierGate("risk_score")` middleware
     - Parse query params (from, to, team, service), validate, call `computeRiskMetrics`
     - Return `RiskMetricsResponse` shape with tier gating (Pro+)
     - _Requirements: 7.1, 9.2, 9.6_
 
-  - [~] 7.4 Implement GET /api/metrics/correlation route
+  - [x] 7.4 Implement GET /api/metrics/correlation route
     - Create `src/app/api/metrics/correlation/route.ts`
     - Apply `withAuthorization` + `withTierGate("incident_correlation")` middleware
     - Call `computeCorrelationMetrics`, return `CorrelationMetricsResponse`
     - _Requirements: 7.1, 9.2, 9.6_
 
-  - [~] 7.5 Implement GET /api/metrics/team-performance route
+  - [x] 7.5 Implement GET /api/metrics/team-performance route
     - Create `src/app/api/metrics/team-performance/route.ts`
     - Apply `withAuthorization` + `withTierGate("risk_score")` middleware
     - Accept optional sortBy and sortOrder query params
     - Call `computeTeamPerformance`, return `TeamPerformanceResponse`
     - _Requirements: 7.1, 9.2, 9.6_
 
-  - [~] 7.6 Implement GET /api/metrics/service-health route
+  - [x] 7.6 Implement GET /api/metrics/service-health route
     - Create `src/app/api/metrics/service-health/route.ts`
     - Apply `withAuthorization` + `withTierGate("risk_score")` middleware
     - Call `computeServiceHealth`, return `ServiceHealthResponse`
     - _Requirements: 7.1, 9.2, 9.6_
 
-  - [~] 7.7 Implement GET /api/metrics/predictions route
+  - [x] 7.7 Implement GET /api/metrics/predictions route
     - Create `src/app/api/metrics/predictions/route.ts`
     - Apply `withAuthorization` + `withTierGate("aiops_predictions")` middleware (Enterprise only)
     - Call `computePredictions`, return `PredictionsMetricsResponse`
     - _Requirements: 7.1, 9.3, 9.6_
 
-  - [~] 7.8 Implement GET /api/metrics/business-impact route
+  - [x] 7.8 Implement GET /api/metrics/business-impact route
     - Create `src/app/api/metrics/business-impact/route.ts`
     - Apply `withAuthorization` + `withTierGate("aiops_predictions")` middleware (Enterprise only)
     - Call `computeBusinessImpact`, return `BusinessImpactResponse`
@@ -182,7 +182,7 @@ This plan implements six new metric sections (Risk, Correlation, Team Performanc
     - **Validates: Requirements 9.1, 9.2, 9.3, 9.6**
     - Test file: `src/lib/middleware/__tests__/tier-access.property.test.ts`
 
-- [~] 8. Checkpoint - Ensure API routes work with computation layer
+- [x] 8. Checkpoint - Ensure API routes work with computation layer
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Implement dashboard UI components
