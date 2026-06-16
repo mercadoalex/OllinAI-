@@ -38,11 +38,16 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
         "dynamodb:UpdateItem",
         "dynamodb:DeleteItem",
         "dynamodb:Query",
-        "dynamodb:Scan"
+        "dynamodb:Scan",
+        "dynamodb:DescribeStream",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:ListStreams"
       ]
       Resource = [
         aws_dynamodb_table.events.arn,
         "${aws_dynamodb_table.events.arn}/index/*",
+        "${aws_dynamodb_table.events.arn}/stream/*",
         aws_dynamodb_table.incidents.arn,
         "${aws_dynamodb_table.incidents.arn}/index/*",
         aws_dynamodb_table.metrics.arn,
@@ -144,6 +149,17 @@ resource "aws_lambda_event_source_mapping" "risk_scorer_sqs" {
   batch_size                         = 10
   function_response_types            = ["ReportBatchItemFailures"]
   maximum_batching_window_in_seconds = 5
+}
+
+# DynamoDB Streams trigger provides a more native DynamoDB pattern where the table
+# mutation IS the event source, eliminating the need for a separate SQS queue.
+# Disabled by default; can be enabled as an alternative to the SQS trigger above.
+resource "aws_lambda_event_source_mapping" "risk_scorer_stream" {
+  event_source_arn  = aws_dynamodb_table.events.stream_arn
+  function_name     = aws_lambda_function.risk_scorer.arn
+  starting_position = "LATEST"
+  batch_size        = 10
+  enabled           = false
 }
 
 # ─── DORA Computer Lambda ────────────────────────────────────────────────────

@@ -32,6 +32,23 @@ OllinAI provides:
 
 ---
 
+## Why DynamoDB
+
+OllinAI's architecture leverages DynamoDB not just as a database, but as a **security enforcement layer**. The partition key model (`TENANT#{id}`) makes cross-tenant data access physically impossible at the storage layer — no SQL injection, no forgotten WHERE clause, no accidental data leak can cross partition boundaries.
+
+Key architectural decisions:
+- **Single-table design** for config entities — 10+ entity types in one table, zero schema migrations
+- **GSI-driven access patterns** — 3 GSIs on the events table each serve a specific query (correlation, team view, deduplication)
+- **ACID transactions** — Integration creation atomically writes records + audit logs
+- **Conditional writes** — Optimistic locking for concurrent onboarding without distributed locks
+- **DynamoDB Streams** — Table mutations trigger downstream processing (risk scoring, DORA computation)
+- **Global Tables** — Active-active replication for enterprise data residency
+- **TTL** — Automatic token cleanup without cron jobs
+
+See [docs/dynamodb-strategic-usage.md](docs/dynamodb-strategic-usage.md) for the full data model and architectural reasoning.
+
+---
+
 ## Architecture
 
 ![OllinAI Architecture](./ollinai_architecture.png)

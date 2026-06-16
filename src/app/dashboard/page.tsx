@@ -33,7 +33,7 @@ export default async function DashboardPage() {
 
   return (
     <main style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-      <DashboardClient initialData={initialData} defaultTimeRange={DEFAULT_DAYS} currentTier="enterprise" />
+      <DashboardClient initialData={initialData} defaultTimeRange={DEFAULT_DAYS} currentTier={initialData.currentTier} />
     </main>
   );
 }
@@ -59,13 +59,14 @@ async function fetchDashboardData(): Promise<DashboardInitialData> {
     const previousStartISO = previousStart.toISOString();
 
     // Fetch current and previous period metrics, and deployment events in parallel
-    const [currentMetrics, previousMetrics, riskData] = await Promise.all([
+    const [currentMetrics, previousMetrics, riskData, currentTier] = await Promise.all([
       fetchMetricsFromDB(tenantId, periodStartISO, periodEndISO),
       fetchMetricsFromDB(tenantId, previousStartISO, periodStartISO),
       fetchRiskDistribution(tenantId, periodStartISO, periodEndISO),
+      fetchTenantTier(tenantId),
     ]);
 
-    const maxRetentionDays = await getRetentionDays(tenantId);
+    const maxRetentionDays = TIER_RETENTION_DAYS[currentTier] || 30;
 
     return {
       currentMetrics: currentMetrics
@@ -77,6 +78,7 @@ async function fetchDashboardData(): Promise<DashboardInitialData> {
       riskDistribution: riskData.distribution,
       totalEvents: riskData.totalEvents,
       maxRetentionDays,
+      currentTier,
     };
   } catch (error) {
     console.error("Failed to fetch dashboard data:", error);
@@ -169,9 +171,10 @@ async function fetchRiskDistribution(
 }
 
 /**
- * Gets the tenant's retention period based on their subscription tier.
+ * Gets the tenant's subscription tier from DynamoDB.
+ * Returns "starter" if no subscription record exists.
  */
-async function getRetentionDays(tenantId: string): Promise<number> {
+async function fetchTenantTier(tenantId: string): Promise<string> {
   const client = getDocumentClient();
 
   try {
@@ -190,14 +193,13 @@ async function getRetentionDays(tenantId: string): Promise<number> {
     if (result.Items && result.Items.length > 0) {
       const item = result.Items[0];
       const entityData = item.entityData as { tier?: string } | undefined;
-      const tier = entityData?.tier || "starter";
-      return TIER_RETENTION_DAYS[tier] || 30;
+      return entityData?.tier || "starter";
     }
   } catch (error) {
-    console.error("Retention days fetch error:", error);
+    console.error("Tier fetch error:", error);
   }
 
-  return 30; // Default to starter tier retention
+  return "starter";
 }
 
 /**
@@ -253,5 +255,6 @@ function getEmptyDashboardData(): DashboardInitialData {
     riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
     totalEvents: 0,
     maxRetentionDays: 30,
+    currentTier: "starter",
   };
 }

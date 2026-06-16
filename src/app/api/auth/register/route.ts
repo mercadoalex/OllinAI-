@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createUser, emailExists } from "@/lib/auth/users";
 import { validatePasswordStrength } from "@/lib/auth/passwords";
+import { seedTenantDemoData } from "@/lib/demo/seed-tenant";
 
 const RegisterSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -76,6 +77,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = await createUser({ email, name, password, tenantName, tenantId });
+
+    // Seed demo data for new tenants (non-blocking — never fail registration)
+    if (!tenantId) {
+      try {
+        seedTenantDemoData(user.tenantId).catch((err) =>
+          console.error("Demo seed failed (non-blocking):", err)
+        );
+      } catch (err) {
+        console.error("Demo seed initiation failed (non-blocking):", err);
+      }
+    }
 
     return NextResponse.json(
       {

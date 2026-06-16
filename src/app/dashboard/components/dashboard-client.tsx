@@ -60,6 +60,7 @@ export interface DashboardInitialData {
   riskDistribution: RiskDistribution;
   totalEvents: number;
   maxRetentionDays: number;
+  currentTier: string;
 }
 
 export interface DashboardClientProps {
@@ -77,7 +78,7 @@ const MINIMUM_EVENTS = 3;
 export function DashboardClient({
   initialData,
   defaultTimeRange = 30,
-  currentTier = "enterprise",
+  currentTier = "starter",
 }: DashboardClientProps) {
   const [timeRange, setTimeRange] = useState<TimeRangeDays>(defaultTimeRange);
   const [currentMetrics, setCurrentMetrics] = useState<DORAMetricsResponse | null>(
