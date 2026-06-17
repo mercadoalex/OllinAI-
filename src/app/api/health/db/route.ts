@@ -10,6 +10,7 @@ export async function GET() {
   const keyPrefix = process.env.AWS_ACCESS_KEY_ID?.slice(0, 8) || "none";
 
   try {
+    const client = getDocumentClient();
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
