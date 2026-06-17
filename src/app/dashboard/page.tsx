@@ -231,17 +231,16 @@ async function fetchTenantTier(tenantId: string): Promise<string> {
  * In production, this would come from the authenticated session.
  */
 function getServerTenantId(): string | null {
+  // Use DEFAULT_TENANT_ID as primary (always available in Vercel env)
+  // Fall back to x-tenant-id header from middleware
+  const fromEnv = process.env.DEFAULT_TENANT_ID;
+  if (fromEnv) return fromEnv;
+
   try {
     const headersList = headers();
-    const fromHeader = headersList.get("x-tenant-id");
-    const fromEnv = process.env.DEFAULT_TENANT_ID;
-    const result = fromHeader || fromEnv || null;
-    console.log(`[Dashboard] tenantId resolution: header=${fromHeader || 'null'}, env=${fromEnv || 'null'}, result=${result || 'null'}`);
-    return result;
-  } catch (err) {
-    const fromEnv = process.env.DEFAULT_TENANT_ID;
-    console.log(`[Dashboard] headers() failed, using env: ${fromEnv || 'null'}`);
-    return fromEnv || null;
+    return headersList.get("x-tenant-id") || null;
+  } catch {
+    return null;
   }
 }
 
