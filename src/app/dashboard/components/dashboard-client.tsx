@@ -67,6 +67,7 @@ export interface DashboardClientProps {
   initialData: DashboardInitialData;
   defaultTimeRange?: TimeRangeDays;
   currentTier?: string;
+  fetchOnMount?: boolean;
 }
 
 /** Polling interval in milliseconds (30 seconds) */
@@ -79,6 +80,7 @@ export function DashboardClient({
   initialData,
   defaultTimeRange = 30,
   currentTier = "starter",
+  fetchOnMount = false,
 }: DashboardClientProps) {
   const [timeRange, setTimeRange] = useState<TimeRangeDays>(defaultTimeRange);
   const [currentMetrics, setCurrentMetrics] = useState<DORAMetricsResponse | null>(
@@ -144,6 +146,27 @@ export function DashboardClient({
     },
     [fetchData]
   );
+
+  // Fetch data on mount if initialData is empty
+  useEffect(() => {
+    if (fetchOnMount && totalEvents === 0) {
+      // Fetch DORA metrics
+      fetchData(timeRange);
+      // Also fetch risk data for totalEvents count
+      const now = new Date();
+      const from = new Date(now.getTime() - timeRange * 24 * 60 * 60 * 1000);
+      fetch(`/api/metrics/risk?from=${from.toISOString()}&to=${now.toISOString()}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data && data.distribution) {
+            const dist = data.distribution;
+            setRiskDistribution(dist);
+            setTotalEvents(dist.low + dist.medium + dist.high + dist.critical);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Set up 30-second polling
   useEffect(() => {
