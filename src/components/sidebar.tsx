@@ -56,15 +56,16 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-gray-800 p-4 space-y-4">
-        {/* Brand watermark — large circle icon */}
+        {/* Brand watermark */}
         <div className="flex items-center justify-center py-4">
-          <div className="w-20 h-20 rounded-full bg-blue-600/20 flex items-center justify-center opacity-60">
-            <div className="w-16 h-16 rounded-full bg-blue-600/40 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">O</span>
-              </div>
-            </div>
-          </div>
+          <Image
+            src="/icon_black.png"
+            alt=""
+            width={80}
+            height={80}
+            className="opacity-35 pointer-events-none select-none"
+            aria-hidden="true"
+          />
         </div>
 
         <button
