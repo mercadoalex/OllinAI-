@@ -136,8 +136,7 @@ async function fetchRiskDistribution(
   let totalEvents = 0;
 
   try {
-    // Query events using the GSI-2 (team view) or scan with tenant prefix
-    // For the "ALL" scope, we query by tenant prefix on the events table
+    // Query events using GSI-2 with date range
     const result = await client.send(
       new QueryCommand({
         TableName: TableNames.EVENTS,
@@ -153,7 +152,7 @@ async function fetchRiskDistribution(
       })
     );
 
-    if (result.Items) {
+    if (result.Items && result.Items.length > 0) {
       totalEvents = result.Items.length;
       for (const item of result.Items) {
         const score = item.riskScore as string | undefined;
@@ -161,13 +160,37 @@ async function fetchRiskDistribution(
           distribution[score]++;
         }
       }
+    } else {
+      // Fallback: query without date range to get total count
+      console.log("[Dashboard] Date-range query returned 0, trying without date filter...");
+      const fallback = await client.send(
+        new QueryCommand({
+          TableName: TableNames.EVENTS,
+          IndexName: "GSI2-TeamView",
+          KeyConditionExpression: "GSI2PK = :pk",
+          ExpressionAttributeValues: {
+            ":pk": `TENANT#${tenantId}#TEAM#UNASSIGNED`,
+          },
+          ProjectionExpression: "riskScore",
+          Limit: 10000,
+        })
+      );
+
+      if (fallback.Items) {
+        totalEvents = fallback.Items.length;
+        for (const item of fallback.Items) {
+          const score = item.riskScore as string | undefined;
+          if (score === "low" || score === "medium" || score === "high" || score === "critical") {
+            distribution[score]++;
+          }
+        }
+      }
     }
   } catch (error) {
-    // If the GSI query fails (e.g., no "ALL" team), try a simpler approach
-    // In practice, this would use a scan or a different GSI
     console.error("Risk distribution fetch error:", error);
   }
 
+  console.log(`[Dashboard] fetchRiskDistribution: tenantId=${tenantId}, totalEvents=${totalEvents}`);
   return { distribution, totalEvents };
 }
 
@@ -210,9 +233,15 @@ async function fetchTenantTier(tenantId: string): Promise<string> {
 function getServerTenantId(): string | null {
   try {
     const headersList = headers();
-    return headersList.get("x-tenant-id") || process.env.DEFAULT_TENANT_ID || null;
-  } catch {
-    return process.env.DEFAULT_TENANT_ID || null;
+    const fromHeader = headersList.get("x-tenant-id");
+    const fromEnv = process.env.DEFAULT_TENANT_ID;
+    const result = fromHeader || fromEnv || null;
+    console.log(`[Dashboard] tenantId resolution: header=${fromHeader || 'null'}, env=${fromEnv || 'null'}, result=${result || 'null'}`);
+    return result;
+  } catch (err) {
+    const fromEnv = process.env.DEFAULT_TENANT_ID;
+    console.log(`[Dashboard] headers() failed, using env: ${fromEnv || 'null'}`);
+    return fromEnv || null;
   }
 }
 
