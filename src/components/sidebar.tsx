@@ -56,6 +56,17 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-gray-800 p-4 space-y-4">
+        {/* Brand watermark — large circle icon */}
+        <div className="flex items-center justify-center py-4">
+          <div className="w-20 h-20 rounded-full bg-blue-600/20 flex items-center justify-center opacity-60">
+            <div className="w-16 h-16 rounded-full bg-blue-600/40 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">O</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <button
           onClick={() => signOut({ callbackUrl: "/sign-in" })}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
@@ -63,18 +74,6 @@ export function Sidebar() {
           <span className="text-lg">🚪</span>
           Sign out
         </button>
-
-        {/* Brand watermark */}
-        <div className="flex items-center justify-center pt-2 opacity-30">
-          <Image
-            src="/ollin_logo_black.png"
-            alt=""
-            width={80}
-            height={22}
-            className="pointer-events-none select-none"
-            aria-hidden="true"
-          />
-        </div>
       </div>
     </aside>
   )
