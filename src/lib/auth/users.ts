@@ -195,7 +195,7 @@ export async function createUser(input: CreateUserInput): Promise<UserRecord> {
           PK: `TENANT#${tenantId}`,
           SK: "SUBSCRIPTION#current",
           entityData: {
-            tier: "starter",
+            tier: "enterprise",
             activatedAt: now,
             tenantName: input.tenantName || `${input.name}'s Organization`,
           },
