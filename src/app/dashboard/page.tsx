@@ -15,8 +15,9 @@ import { DashboardClient, DashboardInitialData } from "./components/dashboard-cl
 import type { RiskDistribution } from "./components/risk-histogram";
 import type { MetricsItem } from "@/lib/types/dynamo";
 
-// ISR: revalidate every 30 seconds
-export const revalidate = 30;
+// Force dynamic rendering — no ISR caching
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /** Default time range: 30 days */
 const DEFAULT_DAYS = 30;

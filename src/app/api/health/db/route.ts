@@ -10,12 +10,18 @@ export async function GET() {
   const keyPrefix = process.env.AWS_ACCESS_KEY_ID?.slice(0, 8) || "none";
 
   try {
-    const client = getDocumentClient();
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
     const result = await client.send(new QueryCommand({
       TableName: TableNames.EVENTS,
       IndexName: "GSI2-TeamView",
-      KeyConditionExpression: "GSI2PK = :pk",
-      ExpressionAttributeValues: { ":pk": `TENANT#${tenantId}#TEAM#UNASSIGNED` },
+      KeyConditionExpression: "GSI2PK = :pk AND GSI2SK BETWEEN :start AND :end",
+      ExpressionAttributeValues: {
+        ":pk": `TENANT#${tenantId}#TEAM#UNASSIGNED`,
+        ":start": `DEPLOY#${thirtyDaysAgo.toISOString()}`,
+        ":end": `DEPLOY#${now.toISOString()}`,
+      },
       Select: "COUNT",
     }));
 
@@ -27,6 +33,10 @@ export async function GET() {
       hasKey,
       hasSecret,
       eventsCount: result.Count,
+      queryRange: {
+        from: thirtyDaysAgo.toISOString(),
+        to: now.toISOString(),
+      },
     });
   } catch (err: any) {
     return NextResponse.json({
