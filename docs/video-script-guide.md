@@ -10,16 +10,16 @@ These are the 4 industry-standard metrics that Google's DORA research identified
 
 | Tile | What to Say | What Judges Should Notice |
 |------|-------------|--------------------------|
-| **Deployment Frequency** | "How often our team ships to production — 1.0 deploys per day" | Higher = better. Elite teams deploy multiple times per day. |
-| **Lead Time** | "Average time from commit to production — 4.2 hours" | Lower = better. Shows how fast value reaches users. |
-| **Change Failure Rate** | "15.3% of our deployments caused incidents — we're working to bring this down" | Lower = better. Elite teams are below 15%. |
-| **MTTR** | "When something breaks, we recover in 2.1 hours on average" | Lower = better. Elite teams recover in under 1 hour. |
+| **Deployment Frequency** | "How often our team ships to production — 2.3 deploys per day, improving from 1.8" | Higher = better. Elite teams deploy multiple times per day. |
+| **Lead Time** | "Average time from commit to production — 4.2 hours, improving from 6.1" | Lower = better. Shows how fast value reaches users. |
+| **Change Failure Rate** | "15.3% of our deployments caused incidents, improving from 19.7% — we're trending in the right direction" | Lower = better. Elite teams are below 15%. |
+| **MTTR** | "When something breaks, we recover in 2.1 hours, down from 3.4" | Lower = better. Elite teams recover in under 1 hour. |
 
-**Talking point:** "These metrics update in real-time as deployments flow through our webhook pipeline. The trend arrows show we're improving compared to the previous 30-day period."
+**Talking point:** "These metrics update in real-time as deployments flow through our webhook pipeline. The trend arrows show we're improving compared to the previous 30-day period — deployment frequency up from 1.8 to 2.3, change failure rate down from 19.7% to 15.3%."
 
 ### Risk Score Distribution (Below DORA)
 
-Shows a histogram of your deployments by risk level.
+Shows a histogram of your deployments by risk level: 28 low, 18 medium, 9 high, 3 critical.
 
 **Talking point:** "Every deployment gets scored before it reaches production. Most of ours are low risk (green), but we can see some high and critical ones — those are the deployments we want to catch proactively."
 
