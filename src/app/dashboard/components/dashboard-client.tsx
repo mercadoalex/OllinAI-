@@ -114,8 +114,8 @@ export function DashboardClient({
 
       // Fetch current period and previous period metrics in parallel
       const [currentRes, prevRes] = await Promise.all([
-        fetch(`/api/metrics/dora?${params}`),
-        fetch(`/api/metrics/dora?${prevParams}`),
+        fetch(`/api/metrics/dora?${params}`, { credentials: "include" }),
+        fetch(`/api/metrics/dora?${prevParams}`, { credentials: "include" }),
       ]);
 
       if (currentRes.ok) {
@@ -155,7 +155,7 @@ export function DashboardClient({
       // Also fetch risk data for totalEvents count
       const now = new Date();
       const from = new Date(now.getTime() - timeRange * 24 * 60 * 60 * 1000);
-      fetch(`/api/metrics/risk?from=${from.toISOString()}&to=${now.toISOString()}`)
+      fetch(`/api/metrics/risk?from=${from.toISOString()}&to=${now.toISOString()}`, { credentials: "include" })
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (data && data.distribution) {
