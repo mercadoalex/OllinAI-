@@ -1,0 +1,123 @@
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1a1a2e', 'primaryTextColor': '#e0e0e0', 'lineColor': '#4fc3f7', 'secondaryColor': '#16213e'}}}%%
+flowchart TB
+    subgraph CICD["CI/CD Pipelines"]
+        GH[GitHub Actions]
+        GL[GitLab CI]
+        BB[Bitbucket Pipelines]
+        AZ[Azure DevOps]
+        CC[CircleCI]
+        JK[Jenkins]
+        AR[ArgoCD]
+    end
+
+    subgraph AGENT["eBPF Agent (Rust)"]
+        direction TB
+        EBPF[Kernel Tracepoints]
+        ANCESTRY[Process Ancestry]
+        CRED[Credential Detection]
+        ATTEST[Build Attestation<br/>in-toto / Ed25519]
+    end
+
+    subgraph VERCEL["Vercel (Frontend + API)"]
+        direction TB
+        NEXT[Next.js 14 App Router]
+        AUTH[NextAuth.js<br/>JWT Sessions]
+        WEBHOOK[Webhook Endpoint<br/>HMAC Verified]
+        DASHBOARD[Dashboard<br/>ISR + Client Polling]
+        API[REST API v1]
+    end
+
+    subgraph DYNAMO["Amazon DynamoDB"]
+        direction TB
+        CONFIG[ollinai-config<br/>Single-Table Design<br/>TENANT#id partitions]
+        EVENTS[ollinai-events<br/>3 GSIs: Correlation,<br/>Team View, Dedup]
+        METRICS[ollinai-metrics<br/>DORA + Risk Scores]
+        INCIDENTS[ollinai-incidents]
+        AUDIT[ollinai-audit]
+        ML_TABLE[ollinai-ml<br/>Feature Vectors]
+        STREAMS[DynamoDB Streams]
+        DAX_CACHE[DAX Cache<br/>Microsecond Reads]
+    end
+
+    subgraph PROCESSING["Event Processing (AWS)"]
+        direction TB
+        SQS[Amazon SQS<br/>Dead-Letter Queues]
+        EB[Amazon EventBridge]
+        RISK[Lambda: Risk Scorer]
+        DORA[Lambda: DORA Computer]
+        CORR[Lambda: Correlator]
+        RECOM[Lambda: Recommendations]
+    end
+
+    subgraph MLPIPE["ML Pipeline"]
+        direction TB
+        SAGE_TRAIN[SageMaker Training]
+        SAGE_INF[SageMaker Inference]
+        DRIFT[Drift Detection]
+    end
+
+    subgraph ENTERPRISE["Enterprise Features"]
+        direction TB
+        GLOBAL[Global Tables<br/>Multi-Region]
+        RESIDENCY[Data Residency<br/>S3 + STS]
+        PITR[Point-in-Time Recovery]
+        ECR[ECR: Rule Distribution<br/>OCI Artifacts]
+    end
+
+    %% CI/CD → Webhook ingestion
+    GH & GL & BB & AZ & CC & JK & AR -->|Deployment Events| WEBHOOK
+
+    %% eBPF Agent flow
+    EBPF --> ANCESTRY
+    ANCESTRY --> CRED
+    CRED --> ATTEST
+    ATTEST -->|Telemetry + Attestations| SQS
+
+    %% Webhook → DynamoDB
+    WEBHOOK -->|"Write (< 100ms)"| EVENTS
+
+    %% DynamoDB Streams → Processing
+    STREAMS -->|Change Records| RISK
+    RISK -->|Risk Score| EVENTS
+    RISK -->|Event| EB
+    EB --> DORA
+    EB --> CORR
+    DORA -->|Computed Metrics| METRICS
+    CORR -->|Correlation Links| INCIDENTS
+    CORR --> RECOM
+
+    %% SQS Processing
+    SQS --> RISK
+
+    %% ML Pipeline
+    ML_TABLE --> SAGE_TRAIN
+    SAGE_TRAIN --> SAGE_INF
+    SAGE_INF -->|Predictions| RISK
+    DRIFT --> SAGE_TRAIN
+
+    %% Dashboard reads
+    DASHBOARD -->|"Reads (DAX)"| DAX_CACHE
+    DAX_CACHE --> METRICS
+    DAX_CACHE --> EVENTS
+    DASHBOARD --> CONFIG
+    AUTH --> CONFIG
+
+    %% Enterprise
+    EVENTS -.->|Replication| GLOBAL
+    EVENTS -.->|Backup| PITR
+    AGENT -.->|Rules| ECR
+    EVENTS -.->|Residency| RESIDENCY
+
+    %% Styling
+    classDef aws fill:#232f3e,stroke:#ff9900,stroke-width:2px,color:#fff
+    classDef vercel fill:#000,stroke:#fff,stroke-width:2px,color:#fff
+    classDef dynamo fill:#2d4059,stroke:#4fc3f7,stroke-width:2px,color:#e0e0e0
+    classDef agent fill:#1b1b2f,stroke:#e94560,stroke-width:2px,color:#fff
+    classDef cicd fill:#1a1a2e,stroke:#a0a0a0,stroke-width:1px,color:#ccc
+
+    class GH,GL,BB,AZ,CC,JK,AR cicd
+    class NEXT,AUTH,WEBHOOK,DASHBOARD,API vercel
+    class CONFIG,EVENTS,METRICS,INCIDENTS,AUDIT,ML_TABLE,STREAMS,DAX_CACHE dynamo
+    class SQS,EB,RISK,DORA,CORR,RECOM,SAGE_TRAIN,SAGE_INF,DRIFT aws
+    class EBPF,ANCESTRY,CRED,ATTEST agent
+    class GLOBAL,RESIDENCY,PITR,ECR aws
