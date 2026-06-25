@@ -136,3 +136,139 @@ Shows a histogram of your deployments by risk level: 28 low, 18 medium, 9 high, 
 
 **On Originality:**
 "Our insight is that DynamoDB's partition key model IS the security model. We didn't bolt security onto a database — we chose a database whose architecture enforces our most critical requirement structurally."
+
+
+---
+
+## Narrated Video Script — 3 Minute Read-Aloud
+
+*Total time target: 2:50–3:00 at conversational pace.*
+*Read naturally. Pause at blank lines. Show the live app while you speak.*
+*Cues in [brackets] tell you what to show on screen — don't read those out loud.*
+
+---
+
+### [0:00–0:25] The Problem
+
+[Show landing page or title slide]
+
+Engineering teams with 50 to 500 engineers
+deploy constantly — but fly blind.
+
+Incidents get correlated manually,
+hours after something breaks.
+
+DORA metrics live in quarterly spreadsheets.
+
+And supply chain attacks steal credentials during CI/CD
+without leaving a trace.
+
+---
+
+### [0:25–0:40] OllinAI Introduction
+
+[Show sign-up or logo]
+
+Hi, I'm Alex — creator of OllinAI.
+
+An Engineering Intelligence and Security Platform
+that gives mid-market teams the confidence
+to move fast and stay secure.
+
+---
+
+### [0:40–1:10] The Solution
+
+[Navigate to dashboard — show DORA tiles]
+
+OllinAI automates DORA metrics in real-time,
+scores every deployment for risk before it hits production,
+and traces incidents back to the exact deploy that caused them.
+
+Under the hood, an ML engine predicts failures,
+eBPF agents detect supply chain hijacking at the kernel level,
+and we generate cryptographic build attestations
+using the in-toto framework.
+
+---
+
+### [1:10–1:40] Live Platform Walkthrough
+
+[Scroll through dashboard sections while narrating]
+
+Here's the live platform.
+
+These are our four DORA metrics — updating in real-time.
+Deployment frequency up, change failure rate trending down.
+
+Below that, every deployment scored by risk level —
+green, amber, orange, red.
+
+[Click Deployments page]
+
+Each deployment shows risk factors, commit info,
+and any correlated incident.
+
+[Click Incidents page]
+
+When an alert fires, OllinAI links it
+to the causing deployment within seconds — automatically.
+
+---
+
+### [1:40–2:10] Architecture & Security
+
+[Show dashboard or architecture slide]
+
+The key architectural decision:
+DynamoDB's partition key model IS our security model.
+
+Cross-tenant data access isn't just blocked by code —
+it's physically impossible at the database level.
+
+Single-table design gives us zero-migration agility.
+DynamoDB Streams process risk scores and metrics
+with no added latency.
+
+Our eBPF agent captures forensic evidence
+of every dependency call during CI execution —
+where others see nothing, we see everything.
+
+---
+
+### [2:10–2:35] Impact & Business Case
+
+[Show predictions or business impact section]
+
+Results so far:
+
+65% reduction in mean-time-to-resolution.
+
+Automatic incident correlation — no manual investigation.
+
+Over $140,000 in estimated annualized savings
+by preventing catastrophic failures.
+
+And a permanent, searchable audit trail
+for every ephemeral CI/CD threat.
+
+---
+
+### [2:35–2:55] Closing
+
+[Show landing page or GitHub link]
+
+Intelligence meets security.
+
+If you're tired of relying on gut-feel
+for your most critical deployments —
+OllinAI is built for you.
+
+Find us at alexmarket.medium.com
+or on GitHub.
+
+Let's scale engineering excellence — together.
+
+---
+
+*End of script. Total: ~2:55 at natural pace.*
