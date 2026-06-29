@@ -241,6 +241,13 @@ curl -X POST https://app.ollinai.com/api/webhooks/deployments \
 
 ---
 
+## Testing
+
+**Live App:** [https://ollin-ai.vercel.app](https://ollin-ai.vercel.app)
+
+
+---
+
 ## License
 
 MIT License — see [LICENSE](./LICENSE) for details.
