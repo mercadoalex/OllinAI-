@@ -93,3 +93,6 @@ temp/
 # ─── Design Files ───────────────────────────────────────────────────────────
 *.psd
 .dynamodb-backups/
+
+# Video script (private)
+docs/video-script-guide.md
